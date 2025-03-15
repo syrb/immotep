@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ apartment.name }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .required-label::after {
+            content: " *";
+            color: red;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_apartment_index') }}">Appartements</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_apartment_show', {'id': apartment.id}) }}">{{ apartment.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">Modifier l'appartement</h1>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'edit-apartment-form', 'enctype': 'multipart/form-data'}}) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.name, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.name, {'attr': {'class': 'form-control' ~ (form.name.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.name) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.status) }}
+                            {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.address, null, {'label_attr': {'class': 'required-label'}}) }}
+                        {{ form_widget(form.address, {'attr': {'class': 'form-control' ~ (form.address.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.address) }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.purchaseDate, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.purchaseDate, {'attr': {'class': 'form-control' ~ (form.purchaseDate.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.purchaseDate) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.purchasePrice, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.purchasePrice, {'attr': {'class': 'form-control' ~ (form.purchasePrice.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.purchasePrice) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.rentalPrice, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.rentalPrice, {'attr': {'class': 'form-control' ~ (form.rentalPrice.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.rentalPrice) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.charges, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.charges, {'attr': {'class': 'form-control' ~ (form.charges.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.charges) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form_label(form.size, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.size, {'attr': {'class': 'form-control' ~ (form.size.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.size) }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form_label(form.bedrooms) }}
+                            {{ form_widget(form.bedrooms, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.bedrooms) }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form_label(form.bathrooms) }}
+                            {{ form_widget(form.bathrooms, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.bathrooms) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.tenantName) }}
+                        {{ form_widget(form.tenantName, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.tenantName) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.imageFile) }}
+                        {% if apartment.imageFilename %}
+                            <div class="mb-2">
+                                <img src="{{ asset('uploads/apartments/' ~ apartment.imageFilename) }}" alt="{{ apartment.name }}" class="img-thumbnail" style="max-height: 200px;">
+                                <p class="text-muted small">Image actuelle. Téléchargez une nouvelle image pour la remplacer.</p>
+                            </div>
+                        {% endif %}
+                        {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_help(form.imageFile, {'help': 'Format JPEG ou PNG, maximum 5Mo.'}) }}
+                        {{ form_errors(form.imageFile) }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_apartment_show', {'id': apartment.id}) }}" class="btn btn-secondary">Retour aux détails</a>
+                        <button type="submit" class="btn btn-success" id="submit-btn">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                    
+                    <script>
+                        // Ajouter un gestionnaire d'événements pour déboguer la soumission du formulaire
+                        document.getElementById('edit-apartment-form').addEventListener('submit', function(e) {
+                            console.log('Formulaire soumis');
+                        });
+                        
+                        // S'assurer que le bouton fonctionne même si JavaScript est désactivé
+                        document.getElementById('submit-btn').addEventListener('click', function(e) {
+                            document.getElementById('edit-apartment-form').submit();
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

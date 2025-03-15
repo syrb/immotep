@@ -1,0 +1,327 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Paiements{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .stats-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        .stats-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .stats-label {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+        .payment-badge {
+            font-size: 0.85rem;
+        }
+        .payment-row {
+            transition: background-color 0.3s ease;
+        }
+        .payment-row:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        .nav-tabs .nav-link {
+            color: #495057;
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestion des Paiements</h1>
+        <a href="{{ path('app_lease_index') }}" class="btn btn-primary">
+            <i class="fas fa-file-contract"></i> Gérer les baux
+        </a>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card bg-success text-white">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="stats-value">{{ summary.paid }}</div>
+                        <div class="stats-label">Paiements reçus</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card bg-warning text-white">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div>
+                        <div class="stats-value">{{ summary.unpaid }}</div>
+                        <div class="stats-label">Paiements à venir</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card bg-danger text-white">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div>
+                        <div class="stats-value">{{ summary.late }}</div>
+                        <div class="stats-label">Paiements en retard</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card bg-primary text-white">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div>
+                        <div class="stats-value">{{ summary.total }}</div>
+                        <div class="stats-label">Total des paiements</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onglets de navigation -->
+    <ul class="nav nav-tabs mb-4" id="paymentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="true">
+                <i class="fas fa-calendar-alt"></i> Prochaines échéances
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="late-tab" data-bs-toggle="tab" data-bs-target="#late" type="button" role="tab" aria-controls="late" aria-selected="false">
+                <i class="fas fa-exclamation-triangle"></i> Paiements en retard
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="false">
+                <i class="fas fa-list"></i> Tous les paiements
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content" id="paymentTabsContent">
+        <!-- Prochaines échéances -->
+        <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Prochaines échéances</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Appartement</th>
+                                    <th>Locataire(s)</th>
+                                    <th>Échéance</th>
+                                    <th>Montant</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in upcoming_payments %}
+                                    <tr class="payment-row">
+                                        <td>{{ payment.lease.apartment.name }}</td>
+                                        <td>{{ payment.lease.tenantsNames }}</td>
+                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                                        <td>
+                                            <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="btn btn-sm btn-primary" title="Voir le bail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">Aucun paiement à venir</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paiements en retard -->
+        <div class="tab-pane fade" id="late" role="tabpanel" aria-labelledby="late-tab">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Paiements en retard</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Appartement</th>
+                                    <th>Locataire(s)</th>
+                                    <th>Échéance</th>
+                                    <th>Montant</th>
+                                    <th>Retard</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in late_payments %}
+                                    <tr class="payment-row">
+                                        <td>{{ payment.lease.apartment.name }}</td>
+                                        <td>{{ payment.lease.tenantsNames }}</td>
+                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                                        <td>
+                                            {% set days_late = date().diff(payment.dueDate).days %}
+                                            <span class="badge bg-danger">{{ days_late }} jour{{ days_late > 1 ? 's' : '' }}</span>
+                                        </td>
+                                        <td>
+                                            <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="btn btn-sm btn-primary" title="Voir le bail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">Aucun paiement en retard (Bravo !)</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tous les paiements -->
+        <div class="tab-pane fade" id="all" role="tabpanel" aria-labelledby="all-tab">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Tous les paiements</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Appartement</th>
+                                    <th>Locataire(s)</th>
+                                    <th>Échéance</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in all_payments %}
+                                    <tr class="payment-row">
+                                        <td>{{ payment.lease.apartment.name }}</td>
+                                        <td>{{ payment.lease.tenantsNames }}</td>
+                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                                        <td>
+                                            {% if payment.status == 'Payé' %}
+                                                <span class="badge bg-success payment-badge">{{ payment.status }}</span>
+                                            {% elseif payment.status == 'Non payé' and payment.isLate %}
+                                                <span class="badge bg-danger payment-badge">En retard</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark payment-badge">{{ payment.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if payment.status != 'Payé' %}
+                                                <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <form method="post" action="{{ path('app_payment_mark_as_unpaid', {'id': payment.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-unpaid' ~ payment.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-warning" title="Marquer comme non payé">
+                                                        <i class="fas fa-undo"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="btn btn-sm btn-primary" title="Voir le bail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">Aucun paiement trouvé</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

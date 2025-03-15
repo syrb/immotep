@@ -1,0 +1,506 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard Immotep{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .dashboard-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card {
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        .status-loue {
+            background-color: #2ecc71;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        .status-vacant {
+            background-color: #e74c3c;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        .status-maintenance {
+            background-color: #f39c12;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        .payment-ok {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .payment-late {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .finance-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .finance-card-header {
+            background-color: #3498db;
+            color: white;
+            padding: 1rem;
+            font-weight: bold;
+        }
+        .finance-card-body {
+            padding: 1.5rem;
+        }
+        .finance-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .finance-label {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        .finance-income {
+            color: #2ecc71;
+        }
+        .finance-expense {
+            color: #e74c3c;
+        }
+        .finance-profit {
+            color: #3498db;
+        }
+        .finance-period-selector {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .payment-due-soon {
+            background-color: #fff3cd;
+        }
+        .payment-overdue {
+            background-color: #f8d7da;
+        }
+        .payment-status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .date-range-picker {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Dashboard de Gestion Locative</h1>
+    
+    <!-- Période sélecteur -->
+    <div class="finance-period-selector">
+        <form id="period-form" method="get" class="row align-items-center">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="period-select">Période</label>
+                    <select id="period-select" class="form-select" onchange="handlePeriodChange()">
+                        <option value="current-year">Année en cours</option>
+                        <option value="previous-year">Année précédente</option>
+                        <option value="custom" {% if startDate is defined and endDate is defined %}selected{% endif %}>Personnalisé</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-7" id="date-range-container" {% if startDate is not defined or endDate is not defined %}style="display: none;"{% endif %}>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label for="start-date">Du</label>
+                            <input type="text" id="start-date" name="startDate" class="form-control date-range-picker" value="{{ startDate|date('d/m/Y') }}" placeholder="Date de début">
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label for="end-date">Au</label>
+                            <input type="text" id="end-date" name="endDate" class="form-control date-range-picker" value="{{ endDate|date('d/m/Y') }}" placeholder="Date de fin">
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary mb-2">Filtrer</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Aperçu financier -->
+    <h2 class="mb-3">Aperçu financier</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="finance-card">
+                <div class="finance-card-header">
+                    <i class="fas fa-money-bill-wave"></i> Revenus
+                </div>
+                <div class="finance-card-body">
+                    <div class="finance-value finance-income">{{ currentYearIncome|number_format(2, ',', ' ') }} €</div>
+                    <div class="finance-label">Année en cours</div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="h5 finance-income">{{ previousYearIncome|number_format(2, ',', ' ') }} €</div>
+                            <small class="text-muted">Année précédente</small>
+                        </div>
+                        <div>
+                            <div class="h5 finance-income">{{ customPeriodIncome|number_format(2, ',', ' ') }} €</div>
+                            <small class="text-muted">Période sélectionnée</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="finance-card">
+                <div class="finance-card-header">
+                    <i class="fas fa-file-invoice-dollar"></i> Impayés
+                </div>
+                <div class="finance-card-body">
+                    <div class="finance-value finance-expense">{{ totalLateAmount|number_format(2, ',', ' ') }} €</div>
+                    <div class="finance-label">{{ latePayments|length }} paiement(s) en retard</div>
+                    
+                    <hr>
+                    
+                    <a href="{{ path('app_payment_index') }}" class="btn btn-danger w-100">
+                        <i class="fas fa-exclamation-triangle"></i> Gérer les impayés
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="finance-card">
+                <div class="finance-card-header">
+                    <i class="fas fa-chart-line"></i> Taux d'occupation
+                </div>
+                <div class="finance-card-body">
+                    <div class="finance-value finance-profit">{{ occupancyRate }}%</div>
+                    <div class="finance-label">{{ occupiedApartments }}/{{ totalApartments }} appartements loués</div>
+                    
+                    <hr>
+                    
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ occupancyRate }}%;" aria-valuenow="{{ occupancyRate }}" aria-valuemin="0" aria-valuemax="100">{{ occupancyRate }}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Graphique des revenus et dépenses -->
+    <div class="dashboard-card bg-white mt-4">
+        <h3 class="mb-3">Évolution des revenus/dépenses</h3>
+        <canvas id="financeChart" height="250"></canvas>
+    </div>
+    
+    <!-- Prochains paiements -->
+    <h2 class="mt-4 mb-3">Prochains paiements (3 mois)</h2>
+    <div class="dashboard-card bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Échéance</th>
+                        <th>Appartement</th>
+                        <th>Locataire(s)</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in upcomingPayments %}
+                        {% set daysUntilDue = date(payment.dueDate).diff(date()).days %}
+                        <tr class="{% if daysUntilDue <= 7 %}payment-due-soon{% endif %}">
+                            <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                            <td>{{ payment.lease.apartment.name }}</td>
+                            <td>{{ payment.lease.tenantsNames }}</td>
+                            <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                            <td>
+                                {% if daysUntilDue <= 7 %}
+                                    <span class="payment-status-badge bg-warning text-dark">Échéance proche</span>
+                                {% else %}
+                                    <span class="payment-status-badge bg-info text-white">À venir</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
+                                        <i class="fas fa-check"></i> Valider
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Aucun paiement à venir dans les 3 prochains mois</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Paiements en retard -->
+    <h2 class="mt-4 mb-3">Paiements en retard</h2>
+    <div class="dashboard-card bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Échéance</th>
+                        <th>Appartement</th>
+                        <th>Locataire(s)</th>
+                        <th>Montant</th>
+                        <th>Retard</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in latePayments %}
+                        {% set daysLate = date().diff(date(payment.dueDate)).days %}
+                        <tr class="payment-overdue">
+                            <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                            <td>{{ payment.lease.apartment.name }}</td>
+                            <td>{{ payment.lease.tenantsNames }}</td>
+                            <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                            <td>
+                                <span class="payment-status-badge bg-danger text-white">{{ daysLate }} jour(s) de retard</span>
+                            </td>
+                            <td>
+                                <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
+                                        <i class="fas fa-check"></i> Valider
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Aucun paiement en retard (Bravo !)</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Aperçu des appartements -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="dashboard-card bg-white">
+                <h3>Statut des appartements</h3>
+                <div class="d-flex justify-content-around text-center mt-4">
+                    <div>
+                        <div class="stat-value text-success">{{ occupiedApartments }}</div>
+                        <div>Loués</div>
+                    </div>
+                    <div>
+                        <div class="stat-value text-danger">{{ vacantApartments }}</div>
+                        <div>Vacants</div>
+                    </div>
+                    <div>
+                        <div class="stat-value text-warning">{{ maintenanceApartments }}</div>
+                        <div>En maintenance</div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="{{ path('app_apartment_index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-home"></i> Gérer les appartements
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dashboard-card bg-white">
+                <h3>Prochaines échéances</h3>
+                <ul class="list-group list-group-flush mt-3">
+                    {% set found = false %}
+                    {% for payment in upcomingPayments|slice(0, 3) %}
+                        {% set found = true %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ payment.lease.apartment.name }} - {{ payment.lease.tenantsNames }}
+                            <div>
+                                <span class="badge bg-primary rounded-pill me-2">{{ payment.amount|number_format(2, ',', ' ') }} €</span>
+                                <span class="badge bg-secondary rounded-pill">{{ payment.dueDate|date('d/m/Y') }}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    {% if not found %}
+                        <li class="list-group-item text-center text-muted">Aucune échéance prochaine</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialisation des datepickers
+            flatpickr(".date-range-picker", {
+                dateFormat: "d/m/Y",
+                locale: {
+                    firstDayOfWeek: 1,
+                    weekdays: {
+                        shorthand: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+                        longhand: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+                    },
+                    months: {
+                        shorthand: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                        longhand: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+                    }
+                }
+            });
+            
+            // Gestion du changement de période
+            window.handlePeriodChange = function() {
+                const periodSelect = document.getElementById('period-select');
+                const dateRangeContainer = document.getElementById('date-range-container');
+                
+                if (periodSelect.value === 'custom') {
+                    dateRangeContainer.style.display = 'block';
+                } else {
+                    dateRangeContainer.style.display = 'none';
+                    
+                    if (periodSelect.value === 'current-year') {
+                        document.getElementById('period-form').submit();
+                    } else if (periodSelect.value === 'previous-year') {
+                        // Rediriger vers l'année précédente
+                        const prevYearStart = new Date();
+                        prevYearStart.setFullYear(prevYearStart.getFullYear() - 1);
+                        prevYearStart.setMonth(0);
+                        prevYearStart.setDate(1);
+                        
+                        const prevYearEnd = new Date();
+                        prevYearEnd.setFullYear(prevYearEnd.getFullYear() - 1);
+                        prevYearEnd.setMonth(11);
+                        prevYearEnd.setDate(31);
+                        
+                        const startDateInput = document.getElementById('start-date');
+                        const endDateInput = document.getElementById('end-date');
+                        
+                        startDateInput.value = formatDate(prevYearStart);
+                        endDateInput.value = formatDate(prevYearEnd);
+                        
+                        document.getElementById('period-form').submit();
+                    }
+                }
+            };
+            
+            // Fonction pour formater la date
+            function formatDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+            
+            // Initialisation du graphique
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            const monthlyIncome = {{ monthlyIncome|json_encode|raw }};
+            const monthlyExpenses = {{ monthlyExpenses|json_encode|raw }};
+            
+            const monthlyData = {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [
+                    {
+                        label: 'Revenus',
+                        data: Object.values(monthlyIncome),
+                        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Dépenses',
+                        data: Object.values(monthlyExpenses),
+                        backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }
+                ]
+            };
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: monthlyData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return value.toLocaleString('fr-FR') + ' €';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

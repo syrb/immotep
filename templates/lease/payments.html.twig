@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiements du bail{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .payment-badge {
+            font-size: 0.9rem;
+        }
+        .payment-row {
+            transition: background-color 0.3s ease;
+        }
+        .payment-row:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        .payment-row.paid {
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+        .payment-row.late {
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .status-badge {
+            font-size: 1rem;
+        }
+        .status-actif {
+            background-color: #28a745;
+        }
+        .bulk-action-form {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-switch .form-check-input {
+            width: 3em;
+            margin-left: -3.5em;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_lease_index') }}">Baux</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_lease_show', {'id': lease.id}) }}">Bail #{{ lease.id }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Paiements</li>
+        </ol>
+    </nav>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Paiements du bail <span class="badge status-{{ lease.status|lower }} status-badge">{{ lease.status }}</span></h1>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{{ lease.apartment.name }} - {{ lease.tenantsNames }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p><strong>Date de début :</strong> {{ lease.startDate|date('d/m/Y') }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Date de fin :</strong> {{ lease.endDate|date('d/m/Y') }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Loyer mensuel :</strong> {{ (lease.rentalAmount + (lease.chargesAmount ?? 0))|number_format(2, ',', ' ') }} €</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <form id="bulk-action-form" action="{{ path('app_payment_bulk_action') }}" method="post" class="bulk-action-form">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="select-all">
+                    <label class="form-check-label" for="select-all">Tout sélectionner</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="action" class="form-select" id="bulk-action">
+                    <option value="">-- Action groupée --</option>
+                    <option value="mark_paid">Marquer comme payé</option>
+                    <option value="mark_unpaid">Marquer comme non payé</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group" id="payment-method-group" style="display: none;">
+                    <label class="input-group-text" for="payment_method">Méthode</label>
+                    <select class="form-select" id="payment_method" name="payment_method">
+                        <option value="Virement">Virement bancaire</option>
+                        <option value="Chèque">Chèque</option>
+                        <option value="Espèces">Espèces</option>
+                        <option value="Prélèvement">Prélèvement automatique</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary" id="apply-bulk-action" disabled>
+                Appliquer
+            </button>
+        </div>
+        
+        <div class="table-responsive mt-4">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="15%">Échéance</th>
+                        <th width="15%">Montant</th>
+                        <th width="15%">Statut</th>
+                        <th width="20%">Date de paiement</th>
+                        <th width="15%">Méthode</th>
+                        <th width="15%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr class="payment-row {% if payment.status == 'Payé' %}paid{% elseif payment.isLate %}late{% endif %}">
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input payment-checkbox" type="checkbox" name="payments[]" value="{{ payment.id }}" id="payment-{{ payment.id }}">
+                                </div>
+                            </td>
+                            <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                            <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                            <td>
+                                {% if payment.status == 'Payé' %}
+                                    <span class="badge bg-success payment-badge">{{ payment.status }}</span>
+                                {% elseif payment.status == 'Non payé' and payment.isLate %}
+                                    <span class="badge bg-danger payment-badge">En retard</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark payment-badge">{{ payment.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.paymentDate ? payment.paymentDate|date('d/m/Y') : '-' }}</td>
+                            <td>{{ payment.paymentMethod ?: '-' }}</td>
+                            <td class="action-buttons">
+                                {% if payment.status != 'Payé' %}
+                                    <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                        <div class="input-group input-group-sm">
+                                            <select name="method" class="form-select form-select-sm">
+                                                <option value="Virement">Virement</option>
+                                                <option value="Chèque">Chèque</option>
+                                                <option value="Espèces">Espèces</option>
+                                                <option value="Prélèvement">Prélèvement</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{{ path('app_payment_mark_as_unpaid', {'id': payment.id}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('mark-as-unpaid' ~ payment.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-warning" title="Marquer comme non payé">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">Aucun paiement trouvé</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+    
+    <div class="mt-4">
+        <a href="{{ path('app_lease_show', {'id': lease.id}) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au bail
+        </a>
+    </div>
+
+    <!-- Ajouter ce bouton près du haut de la page -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ path('app_lease_show', {'id': lease.id}) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au bail
+        </a>
+        <a href="{{ path('app_lease_regenerate_payments', {'id': lease.id}) }}" class="btn btn-warning">
+            <i class="fas fa-sync"></i> Régénérer les paiements
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('select-all');
+            const checkboxes = document.querySelectorAll('.payment-checkbox');
+            const bulkActionSelect = document.getElementById('bulk-action');
+            const applyButton = document.getElementById('apply-bulk-action');
+            const paymentMethodGroup = document.getElementById('payment-method-group');
+            
+            // Gérer la sélection de toutes les cases
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+                updateApplyButtonState();
+            });
+            
+            // Mettre à jour l'état du bouton appliquer
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateApplyButtonState();
+                });
+            });
+            
+            // Gérer l'affichage du sélecteur de méthode de paiement
+            bulkActionSelect.addEventListener('change', function() {
+                if (bulkActionSelect.value === 'mark_paid') {
+                    paymentMethodGroup.style.display = 'flex';
+                } else {
+                    paymentMethodGroup.style.display = 'none';
+                }
+                updateApplyButtonState();
+            });
+            
+            function updateApplyButtonState() {
+                const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+                const actionSelected = bulkActionSelect.value !== '';
+                applyButton.disabled = !(anyChecked && actionSelected);
+            }
+        });
+    </script>
+{% endblock %}

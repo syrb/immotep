@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Baux{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .lease-card {
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .lease-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+        .status-actif {
+            background-color: #28a745;
+        }
+        .status-termine {
+            background-color: #6c757d;
+        }
+        .status-resilie {
+            background-color: #dc3545;
+        }
+        .status-attente {
+            background-color: #ffc107;
+            color: #212529;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Liste des Baux</h1>
+        <a href="{{ path('app_lease_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Créer un bail
+        </a>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="row">
+        {% for lease in leases %}
+            <div class="col-md-6 mb-4">
+                <div class="card lease-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            {{ lease.apartment.name }}
+                            <span class="badge status-{{ lease.status|lower }} status-badge">{{ lease.status }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Locataires :</strong> {{ lease.tenantsNames }}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Début :</strong> {{ lease.startDate|date('d/m/Y') }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Fin :</strong> {{ lease.endDate|date('d/m/Y') }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Loyer :</strong> {{ lease.rentalAmount|number_format(2, ',', ' ') }} €
+                            </div>
+                            <div class="col-6">
+                                <strong>Charges :</strong> {{ lease.chargesAmount ? lease.chargesAmount|number_format(2, ',', ' ') ~ ' €' : 'N/A' }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12 d-flex justify-content-between">
+                                <a href="{{ path('app_lease_show', {'id': lease.id}) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Détails
+                                </a>
+                                <a href="{{ path('app_lease_payments', {'id': lease.id}) }}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-money-bill-wave"></i> Paiements
+                                </a>
+                                <a href="{{ path('app_lease_edit', {'id': lease.id}) }}" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    Aucun bail trouvé. Commencez par en créer un !
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

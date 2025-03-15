@@ -1,0 +1,260 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du bail{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .property-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .property-value {
+            margin-bottom: 0.5rem;
+        }
+        .info-card {
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 1rem;
+        }
+        .status-actif {
+            background-color: #28a745;
+        }
+        .status-termine {
+            background-color: #6c757d;
+        }
+        .status-resilie {
+            background-color: #dc3545;
+        }
+        .status-attente {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .payment-table th, .payment-table td {
+            vertical-align: middle;
+        }
+        .payment-badge {
+            font-size: 0.85rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_lease_index') }}">Baux</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Bail #{{ lease.id }}</li>
+        </ol>
+    </nav>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Détails du bail <span class="badge status-{{ lease.status|lower }} status-badge">{{ lease.status }}</span></h1>
+        <div>
+            <a href="{{ path('app_lease_edit', {'id': lease.id}) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash-alt"></i> Supprimer
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card info-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-home"></i> Appartement</h5>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ lease.apartment.name }}</h5>
+                    <p class="card-text">
+                        <i class="fas fa-map-marker-alt"></i> {{ lease.apartment.address }}<br>
+                        <i class="fas fa-ruler-combined"></i> {{ lease.apartment.size }} m²<br>
+                        {% if lease.apartment.bedrooms %}
+                            <i class="fas fa-bed"></i> {{ lease.apartment.bedrooms }} chambre(s)<br>
+                        {% endif %}
+                    </p>
+                    <a href="{{ path('app_apartment_show', {'id': lease.apartment.id}) }}" class="btn btn-outline-info btn-sm">
+                        Voir l'appartement
+                    </a>
+                </div>
+            </div>
+
+            <div class="card info-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Locataires</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for tenant in lease.tenants %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-user"></i> {{ tenant.firstName }} {{ tenant.lastName }}
+                                    </span>
+                                    <a href="{{ path('app_tenant_show', {'id': tenant.id}) }}" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                                <small class="text-muted">{{ tenant.email }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card info-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-contract"></i> Détails du contrat</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="property-label">Date de début</p>
+                            <p class="property-value"><i class="fas fa-calendar-day"></i> {{ lease.startDate|date('d/m/Y') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="property-label">Date de fin</p>
+                            <p class="property-value"><i class="fas fa-calendar-day"></i> {{ lease.endDate|date('d/m/Y') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="property-label">Loyer</p>
+                            <p class="property-value"><i class="fas fa-euro-sign"></i> {{ lease.rentalAmount|number_format(2, ',', ' ') }} €</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="property-label">Charges</p>
+                            <p class="property-value"><i class="fas fa-euro-sign"></i> {{ lease.chargesAmount ? lease.chargesAmount|number_format(2, ',', ' ') ~ ' €' : 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="property-label">Dépôt de garantie</p>
+                            <p class="property-value"><i class="fas fa-euro-sign"></i> {{ lease.depositAmount ? lease.depositAmount|number_format(2, ',', ' ') ~ ' €' : 'N/A' }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if lease.notes %}
+                        <div class="mb-3">
+                            <p class="property-label">Notes</p>
+                            <div class="p-3 bg-light rounded">
+                                {{ lease.notes|nl2br }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card info-card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Derniers paiements</h5>
+                    <a href="{{ path('app_lease_payments', {'id': lease.id}) }}" class="btn btn-sm btn-light">Voir tous</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover payment-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments|slice(0, 5) %}
+                                    <tr>
+                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                                        <td>
+                                            {% if payment.status == 'Payé' %}
+                                                <span class="badge bg-success payment-badge">{{ payment.status }}</span>
+                                            {% elseif payment.status == 'Non payé' and payment.isLate %}
+                                                <span class="badge bg-danger payment-badge">En retard</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark payment-badge">{{ payment.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if payment.status != 'Payé' %}
+                                                <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <form method="post" action="{{ path('app_payment_mark_as_unpaid', {'id': payment.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-unpaid' ~ payment.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-warning">
+                                                        <i class="fas fa-undo"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">Aucun paiement trouvé</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ path('app_lease_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmation de suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer ce bail ?</p>
+                <p class="text-danger"><strong>Attention :</strong> Cette action supprimera également tous les paiements associés à ce bail et ne peut pas être annulée.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('app_lease_delete', {'id': lease.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ lease.id) }}">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

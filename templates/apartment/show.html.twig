@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ apartment.name }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .property-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .property-value {
+            margin-bottom: 0.5rem;
+        }
+        .apartment-image {
+            max-height: 400px;
+            object-fit: cover;
+            width: 100%;
+            border-radius: 8px;
+        }
+        .status-badge {
+            font-size: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_apartment_index') }}">Appartements</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ apartment.name }}</li>
+        </ol>
+    </nav>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">{{ apartment.name }}</h1>
+            {% if apartment.status == 'Loué' %}
+                <span class="badge bg-success status-badge">{{ apartment.status }}</span>
+            {% elseif apartment.status == 'Vacant' %}
+                <span class="badge bg-danger status-badge">{{ apartment.status }}</span>
+            {% elseif apartment.status == 'Maintenance' %}
+                <span class="badge bg-warning status-badge">{{ apartment.status }}</span>
+            {% elseif apartment.status == 'En vente' %}
+                <span class="badge bg-info status-badge">{{ apartment.status }}</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    {% if apartment.imageFilename %}
+                        <img src="{{ asset('uploads/apartments/' ~ apartment.imageFilename) }}" class="apartment-image mb-4" alt="{{ apartment.name }}">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center apartment-image mb-4">
+                            <i class="fas fa-home fa-5x text-muted"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <p class="property-label">Adresse</p>
+                        <p class="property-value"><i class="fas fa-map-marker-alt"></i> {{ apartment.address }}</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="property-label">Loyer mensuel</p>
+                            <p class="property-value"><i class="fas fa-euro-sign"></i> {{ apartment.rentalPrice|number_format(0, ',', ' ') }} €</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="property-label">Charges</p>
+                            <p class="property-value"><i class="fas fa-euro-sign"></i> {{ apartment.charges|number_format(0, ',', ' ') }} €</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="property-label">Surface</p>
+                            <p class="property-value"><i class="fas fa-ruler-combined"></i> {{ apartment.size }} m²</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="property-label">Caractéristiques</p>
+                            <p class="property-value">
+                                {% if apartment.bedrooms %}<i class="fas fa-bed"></i> {{ apartment.bedrooms }} chambre(s){% endif %}
+                                {% if apartment.bathrooms %} · <i class="fas fa-bath"></i> {{ apartment.bathrooms }} sdb{% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="property-label">Locataire</p>
+                        <p class="property-value">
+                            {% if apartment.tenantName %}
+                                <i class="fas fa-user"></i> {{ apartment.tenantName }}
+                            {% else %}
+                                <span class="text-muted">Aucun locataire</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <p class="property-label">Date d'achat</p>
+                        <p class="property-value"><i class="fas fa-calendar-alt"></i> {{ apartment.purchaseDate|date('d/m/Y') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <p class="property-label">Prix d'achat</p>
+                        <p class="property-value"><i class="fas fa-euro-sign"></i> {{ apartment.purchasePrice|number_format(0, ',', ' ') }} €</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if apartment.description %}
+                <div class="mt-4">
+                    <h4>Description</h4>
+                    <div class="p-3 bg-light rounded">
+                        {{ apartment.description|nl2br }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="mt-4 d-flex justify-content-between">
+                <div>
+                    <a href="{{ path('app_apartment_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour à la liste
+                    </a>
+                    <a href="{{ path('app_apartment_edit', {'id': apartment.id}) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+                <form method="post" action="{{ path('app_apartment_delete', {'id': apartment.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet appartement ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ apartment.id) }}">
+                    <button class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

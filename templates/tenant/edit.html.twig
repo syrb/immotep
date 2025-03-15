@@ -1,0 +1,264 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ tenant.firstName }} {{ tenant.lastName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .required-label::after {
+            content: " *";
+            color: red;
+        }
+        .card-header-tabs {
+            margin-right: -1rem;
+            margin-bottom: -0.75rem;
+            margin-left: -1rem;
+            border-bottom: 0;
+        }
+        .nav-tabs .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .nav-tabs .nav-link.active {
+            color: #495057;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+        .document-preview {
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_tenant_index') }}">Locataires</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_tenant_show', {'id': tenant.id}) }}">{{ tenant.firstName }} {{ tenant.lastName }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <ul class="nav nav-tabs card-header-tabs" id="tenantTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">Informations personnelles</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="guarantor-tab" data-bs-toggle="tab" data-bs-target="#guarantor" type="button" role="tab" aria-controls="guarantor" aria-selected="false">Garant</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-controls="documents" aria-selected="false">Documents</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">Notes</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <h2 class="mb-4">Modifier le locataire</h2>
+
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'tenant-form', 'enctype': 'multipart/form-data'}}) }}
+            
+            <div class="tab-content" id="tenantTabsContent">
+                <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.firstName, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.firstName, {'attr': {'class': 'form-control' ~ (form.firstName.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.firstName) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.lastName, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.lastName, {'attr': {'class': 'form-control' ~ (form.lastName.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.lastName) }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.email, null, {'label_attr': {'class': 'required-label'}}) }}
+                            {{ form_widget(form.email, {'attr': {'class': 'form-control' ~ (form.email.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.email) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.phone) }}
+                            {{ form_widget(form.phone, {'attr': {'class': 'form-control' ~ (form.phone.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.phone) }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.birthDate) }}
+                            {{ form_widget(form.birthDate, {'attr': {'class': 'form-control' ~ (form.birthDate.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.birthDate) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.apartment) }}
+                            {{ form_widget(form.apartment, {'attr': {'class': 'form-select' ~ (form.apartment.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.apartment) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.address) }}
+                        {{ form_widget(form.address, {'attr': {'class': 'form-control' ~ (form.address.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.address) }}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-primary next-tab" data-target="guarantor-tab">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="guarantor" role="tabpanel" aria-labelledby="guarantor-tab">
+                    <div class="mb-3">
+                        {{ form_label(form.guarantorName) }}
+                        {{ form_widget(form.guarantorName, {'attr': {'class': 'form-control' ~ (form.guarantorName.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.guarantorName) }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.guarantorEmail) }}
+                            {{ form_widget(form.guarantorEmail, {'attr': {'class': 'form-control' ~ (form.guarantorEmail.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.guarantorEmail) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.guarantorPhone) }}
+                            {{ form_widget(form.guarantorPhone, {'attr': {'class': 'form-control' ~ (form.guarantorPhone.vars.valid ? '' : ' is-invalid')}}) }}
+                            {{ form_errors(form.guarantorPhone) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.guarantorAddress) }}
+                        {{ form_widget(form.guarantorAddress, {'attr': {'class': 'form-control' ~ (form.guarantorAddress.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.guarantorAddress) }}
+                    </div>
+                    
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary prev-tab" data-target="info-tab">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-tab" data-target="documents-tab">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+                    <div class="mb-3">
+                        {{ form_label(form.idCardFile) }}
+                        {% if tenant.idCardFilename %}
+                            <div class="document-preview">
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.idCardFilename) }}" target="_blank" class="btn btn-sm btn-outline-info mb-2">
+                                    <i class="fas fa-file"></i> {{ tenant.idCardFilename }}
+                                </a>
+                                <p class="text-muted small">Document actuel. Téléchargez un nouveau document pour le remplacer.</p>
+                            </div>
+                        {% endif %}
+                        {{ form_widget(form.idCardFile, {'attr': {'class': 'form-control' ~ (form.idCardFile.vars.valid ? '' : ' is-invalid')}}) }}
+                        <small class="form-text text-muted">Format PDF, JPEG ou PNG (max. 8MB)</small>
+                        {{ form_errors(form.idCardFile) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.leaseContractFile) }}
+                        {% if tenant.leaseContractFilename %}
+                            <div class="document-preview">
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.leaseContractFilename) }}" target="_blank" class="btn btn-sm btn-outline-info mb-2">
+                                    <i class="fas fa-file"></i> {{ tenant.leaseContractFilename }}
+                                </a>
+                                <p class="text-muted small">Document actuel. Téléchargez un nouveau document pour le remplacer.</p>
+                            </div>
+                        {% endif %}
+                        {{ form_widget(form.leaseContractFile, {'attr': {'class': 'form-control' ~ (form.leaseContractFile.vars.valid ? '' : ' is-invalid')}}) }}
+                        <small class="form-text text-muted">Format PDF, JPEG ou PNG (max. 8MB)</small>
+                        {{ form_errors(form.leaseContractFile) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.guarantorDocumentFile) }}
+                        {% if tenant.guarantorDocumentFilename %}
+                            <div class="document-preview">
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.guarantorDocumentFilename) }}" target="_blank" class="btn btn-sm btn-outline-info mb-2">
+                                    <i class="fas fa-file"></i> {{ tenant.guarantorDocumentFilename }}
+                                </a>
+                                <p class="text-muted small">Document actuel. Téléchargez un nouveau document pour le remplacer.</p>
+                            </div>
+                        {% endif %}
+                        {{ form_widget(form.guarantorDocumentFile, {'attr': {'class': 'form-control' ~ (form.guarantorDocumentFile.vars.valid ? '' : ' is-invalid')}}) }}
+                        <small class="form-text text-muted">Format PDF, JPEG ou PNG (max. 8MB)</small>
+                        {{ form_errors(form.guarantorDocumentFile) }}
+                    </div>
+                    
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary prev-tab" data-target="guarantor-tab">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary next-tab" data-target="notes-tab">
+                            Suivant <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+                    <div class="mb-3">
+                        {{ form_label(form.notes) }}
+                        {{ form_widget(form.notes, {'attr': {'class': 'form-control' ~ (form.notes.vars.valid ? '' : ' is-invalid'), 'rows': '5'}}) }}
+                        {{ form_errors(form.notes) }}
+                    </div>
+                    
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary prev-tab" data-target="documents-tab">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            {{ form_end(form) }}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{{ path('app_tenant_show', {'id': tenant.id}) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour aux détails
+        </a>
+    </div>
+</div>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion des onglets avec les boutons suivant/précédent
+            document.querySelectorAll('.next-tab').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-target');
+                    const tab = new bootstrap.Tab(document.getElementById(tabId));
+                    tab.show();
+                });
+            });
+            
+            document.querySelectorAll('.prev-tab').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-target');
+                    const tab = new bootstrap.Tab(document.getElementById(tabId));
+                    tab.show();
+                });
+            });
+        });
+    </script>
+{% endblock %}
+{% endblock %}

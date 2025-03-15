@@ -1,0 +1,265 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ tenant.firstName }} {{ tenant.lastName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .property-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .property-value {
+            margin-bottom: 0.5rem;
+        }
+        .tenant-avatar {
+            width: 150px;
+            height: 150px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 3rem;
+            color: #6c757d;
+            margin: 0 auto 25px;
+        }
+        .document-card {
+            transition: transform 0.3s ease;
+        }
+        .document-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .document-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_tenant_index') }}">Locataires</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ tenant.firstName }} {{ tenant.lastName }}</li>
+        </ol>
+    </nav>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="tenant-avatar">
+                        {{ tenant.firstName|first|upper }}{{ tenant.lastName|first|upper }}
+                    </div>
+                    <h2 class="card-title">{{ tenant.firstName }} {{ tenant.lastName }}</h2>
+                    <p class="card-text">
+                        <i class="fas fa-envelope"></i> {{ tenant.email }}<br>
+                        {% if tenant.phone %}
+                            <i class="fas fa-phone"></i> {{ tenant.phone }}<br>
+                        {% endif %}
+                        {% if tenant.birthDate %}
+                            <i class="fas fa-birthday-cake"></i> {{ tenant.birthDate|date('d/m/Y') }}<br>
+                        {% endif %}
+                    </p>
+                    
+                    <div class="mt-4">
+                        <a href="{{ path('app_tenant_edit', {'id': tenant.id}) }}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash-alt"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if tenant.apartment %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-home"></i> Appartement</h5>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ tenant.apartment.name }}</h5>
+                    <p class="card-text">
+                        <i class="fas fa-map-marker-alt"></i> {{ tenant.apartment.address }}<br>
+                        <i class="fas fa-ruler-combined"></i> {{ tenant.apartment.size }} m²<br>
+                        <i class="fas fa-euro-sign"></i> {{ tenant.apartment.rentalPrice|number_format(0, ',', ' ') }} €/mois
+                    </p>
+                    <a href="{{ path('app_apartment_show', {'id': tenant.apartment.id}) }}" class="btn btn-outline-info btn-sm">
+                        Voir l'appartement
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations personnelles</h5>
+                </div>
+                <div class="card-body">
+                    {% if tenant.address %}
+                    <div class="mb-3">
+                        <p class="property-label">Adresse</p>
+                        <p class="property-value">{{ tenant.address|nl2br }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if tenant.notes %}
+                    <div class="mb-3">
+                        <p class="property-label">Notes</p>
+                        <div class="p-3 bg-light rounded">
+                            {{ tenant.notes|nl2br }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if tenant.guarantorName or tenant.guarantorEmail or tenant.guarantorPhone or tenant.guarantorAddress %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-shield"></i> Garant</h5>
+                </div>
+                <div class="card-body">
+                    {% if tenant.guarantorName %}
+                    <div class="mb-3">
+                        <p class="property-label">Nom du garant</p>
+                        <p class="property-value">{{ tenant.guarantorName }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        {% if tenant.guarantorEmail %}
+                        <div class="col-md-6 mb-3">
+                            <p class="property-label">Email</p>
+                            <p class="property-value">{{ tenant.guarantorEmail }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if tenant.guarantorPhone %}
+                        <div class="col-md-6 mb-3">
+                            <p class="property-label">Téléphone</p>
+                            <p class="property-value">{{ tenant.guarantorPhone }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if tenant.guarantorAddress %}
+                    <div class="mb-3">
+                        <p class="property-label">Adresse</p>
+                        <p class="property-value">{{ tenant.guarantorAddress|nl2br }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card document-card text-center h-100 {% if not tenant.idCardFilename %}bg-light{% endif %}">
+                                <div class="card-body">
+                                    {% if tenant.idCardFilename %}
+                                        <i class="fas fa-id-card document-icon text-success"></i>
+                                        <h5 class="card-title">Pièce d'identité</h5>
+                                        <a href="{{ asset('uploads/tenant_documents/' ~ tenant.idCardFilename) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    {% else %}
+                                        <i class="fas fa-id-card document-icon text-muted"></i>
+                                        <h5 class="card-title text-muted">Pièce d'identité</h5>
+                                        <span class="text-muted">Non fournie</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="card document-card text-center h-100 {% if not tenant.leaseContractFilename %}bg-light{% endif %}">
+                                <div class="card-body">
+                                    {% if tenant.leaseContractFilename %}
+                                        <i class="fas fa-file-contract document-icon text-success"></i>
+                                        <h5 class="card-title">Contrat de bail</h5>
+                                        <a href="{{ asset('uploads/tenant_documents/' ~ tenant.leaseContractFilename) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    {% else %}
+                                        <i class="fas fa-file-contract document-icon text-muted"></i>
+                                        <h5 class="card-title text-muted">Contrat de bail</h5>
+                                        <span class="text-muted">Non fourni</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="card document-card text-center h-100 {% if not tenant.guarantorDocumentFilename %}bg-light{% endif %}">
+                                <div class="card-body">
+                                    {% if tenant.guarantorDocumentFilename %}
+                                        <i class="fas fa-file-signature document-icon text-success"></i>
+                                        <h5 class="card-title">Document du garant</h5>
+                                        <a href="{{ asset('uploads/tenant_documents/' ~ tenant.guarantorDocumentFilename) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    {% else %}
+                                        <i class="fas fa-file-signature document-icon text-muted"></i>
+                                        <h5 class="card-title text-muted">Document du garant</h5>
+                                        <span class="text-muted">Non fourni</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ path('app_tenant_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmation de suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer ce locataire ? Cette action est irréversible.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('app_tenant_delete', {'id': tenant.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tenant.id) }}">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

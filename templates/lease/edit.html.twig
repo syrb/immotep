@@ -1,0 +1,178 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le bail{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .required-label::after {
+            content: " *";
+            color: red;
+        }
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .select2-container .select2-selection--multiple {
+            min-height: 38px;
+        }
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_lease_index') }}">Baux</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_lease_show', {'id': lease.id}) }}">Bail #{{ lease.id }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+        </ol>
+    </nav>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h3 mb-0">Modifier le bail</h1>
+        </div>
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'lease-form'}}) }}
+            
+            <div class="form-section">
+                <h4 class="mb-3">Information sur le bien</h4>
+                <div class="mb-3">
+                    {{ form_label(form.apartment, null, {'label_attr': {'class': 'required-label'}}) }}
+                    {{ form_widget(form.apartment, {'attr': {'class': 'form-select apartment-select' ~ (form.apartment.vars.valid ? '' : ' is-invalid')}}) }}
+                    {{ form_errors(form.apartment) }}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="mb-3">Information sur les locataires</h4>
+                <div class="mb-3">
+                    {{ form_label(form.tenants, null, {'label_attr': {'class': 'required-label'}}) }}
+                    {{ form_widget(form.tenants, {'attr': {'class': 'form-control select2' ~ (form.tenants.vars.valid ? '' : ' is-invalid')}}) }}
+                    {{ form_errors(form.tenants) }}
+                    <small class="form-text text-muted">Sélectionnez un ou plusieurs locataires</small>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="mb-3">Durée du bail</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.startDate, null, {'label_attr': {'class': 'required-label'}}) }}
+                        {{ form_widget(form.startDate, {'attr': {'class': 'form-control' ~ (form.startDate.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.startDate) }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.endDate, null, {'label_attr': {'class': 'required-label'}}) }}
+                        {{ form_widget(form.endDate, {'attr': {'class': 'form-control' ~ (form.endDate.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.endDate) }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="mb-3">Montants</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form_label(form.rentalAmount, null, {'label_attr': {'class': 'required-label'}}) }}
+                        {{ form_widget(form.rentalAmount, {'attr': {'class': 'form-control rental-amount' ~ (form.rentalAmount.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.rentalAmount) }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form_label(form.chargesAmount) }}
+                        {{ form_widget(form.chargesAmount, {'attr': {'class': 'form-control charges-amount' ~ (form.chargesAmount.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.chargesAmount) }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form_label(form.depositAmount) }}
+                        {{ form_widget(form.depositAmount, {'attr': {'class': 'form-control' ~ (form.depositAmount.vars.valid ? '' : ' is-invalid')}}) }}
+                        {{ form_errors(form.depositAmount) }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="mb-3">Informations complémentaires</h4>
+                
+                <div class="mb-3">
+                    {{ form_label(form.status) }}
+                    {{ form_widget(form.status, {'attr': {'class': 'form-select' ~ (form.status.vars.valid ? '' : ' is-invalid')}}) }}
+                    {{ form_errors(form.status) }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form_label(form.notes) }}
+                    {{ form_widget(form.notes, {'attr': {'class': 'form-control' ~ (form.notes.vars.valid ? '' : ' is-invalid')}}) }}
+                    {{ form_errors(form.notes) }}
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('app_lease_show', {'id': lease.id}) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Enregistrer les modifications
+                </button>
+            </div>
+            
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialisation de Select2 pour le champ des locataires
+            $('.select2').select2({
+                placeholder: 'Sélectionnez les locataires',
+                allowClear: true
+            });
+            
+            // Mettre à jour le montant du loyer quand l'appartement change
+            const apartmentSelect = document.querySelector('.apartment-select');
+            const rentalAmountInput = document.querySelector('.rental-amount');
+            const chargesAmountInput = document.querySelector('.charges-amount');
+            
+            apartmentSelect.addEventListener('change', function() {
+                const apartmentId = this.value;
+                if (apartmentId) {
+                    // Requête AJAX pour récupérer les informations de l'appartement
+                    fetch('/apartment/' + apartmentId + '/info')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.rentalPrice) {
+                                rentalAmountInput.value = data.rentalPrice;
+                            }
+                            if (data.chargesAmount) {
+                                chargesAmountInput.value = data.chargesAmount;
+                            }
+                        })
+                        .catch(error => console.error('Erreur:', error));
+                }
+            });
+        });
+    </script>
+{% endblock %}

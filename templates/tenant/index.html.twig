@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Locataires{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .tenant-card {
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .tenant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 2rem;
+            color: #6c757d;
+            margin: 0 auto 15px;
+        }
+        .document-icon {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+        .document-link {
+            text-decoration: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Liste des Locataires</h1>
+        <a href="{{ path('app_tenant_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Ajouter un locataire
+        </a>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row">
+        {% for tenant in tenants %}
+            <div class="col-md-4 mb-4">
+                <div class="card tenant-card">
+                    <div class="card-body text-center">
+                        <div class="avatar-placeholder">
+                            {{ tenant.firstName|first|upper }}{{ tenant.lastName|first|upper }}
+                        </div>
+                        <h5 class="card-title">{{ tenant.firstName }} {{ tenant.lastName }}</h5>
+                        <p class="card-text">
+                            <i class="fas fa-envelope"></i> {{ tenant.email }}<br>
+                            {% if tenant.phone %}
+                                <i class="fas fa-phone"></i> {{ tenant.phone }}<br>
+                            {% endif %}
+                            {% if tenant.apartment %}
+                                <i class="fas fa-home"></i> <a href="{{ path('app_apartment_show', {'id': tenant.apartment.id}) }}">{{ tenant.apartment.name }}</a>
+                            {% else %}
+                                <i class="fas fa-home text-muted"></i> <span class="text-muted">Aucun appartement</span>
+                            {% endif %}
+                        </p>
+                        
+                        <div class="d-flex justify-content-around mb-3">
+                            {% if tenant.idCardFilename %}
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.idCardFilename) }}" target="_blank" class="document-link" title="Pièce d'identité">
+                                    <i class="fas fa-id-card document-icon text-success"></i>
+                                </a>
+                            {% else %}
+                                <i class="fas fa-id-card document-icon text-muted" title="Pas de pièce d'identité"></i>
+                            {% endif %}
+                            
+                            {% if tenant.leaseContractFilename %}
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.leaseContractFilename) }}" target="_blank" class="document-link" title="Contrat de bail">
+                                    <i class="fas fa-file-contract document-icon text-success"></i>
+                                </a>
+                            {% else %}
+                                <i class="fas fa-file-contract document-icon text-muted" title="Pas de contrat de bail"></i>
+                            {% endif %}
+                            
+                            {% if tenant.guarantorDocumentFilename %}
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.guarantorDocumentFilename) }}" target="_blank" class="document-link" title="Document du garant">
+                                    <i class="fas fa-file-signature document-icon text-success"></i>
+                                </a>
+                            {% else %}
+                                <i class="fas fa-file-signature document-icon text-muted" title="Pas de document garant"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="btn-group w-100">
+                            <a href="{{ path('app_tenant_show', {'id': tenant.id}) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> Détails
+                            </a>
+                            <a href="{{ path('app_tenant_edit', {'id': tenant.id}) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    Aucun locataire trouvé. Commencez par en ajouter un !
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
