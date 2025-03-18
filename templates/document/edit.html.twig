@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le document{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index') }}">Documents</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index', {'year': document.documentDate|date('Y')}) }}">{{ document.documentDate|date('Y') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_show', {'id': document.id}) }}">{{ document.title }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Modifier le document</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        {{ form_row(form.title) }}
+                        {{ form_row(form.description) }}
+                        {{ form_row(form.documentDate) }}
+                        {{ form_row(form.category) }}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Fichier actuel</label>
+                            <p>{{ document.originalFilename ?? document.filename }}</p>
+                        </div>
+                        
+                        {{ form_row(form.documentFile, {
+                            'label': 'Nouveau fichier (laisser vide pour conserver le fichier actuel)',
+                            'required': false
+                        }) }}
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ path('app_document_show', {'id': document.id}) }}" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

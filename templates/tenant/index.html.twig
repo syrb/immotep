@@ -5,42 +5,269 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
-        .tenant-card {
-            transition: transform 0.3s ease;
-            height: 100%;
+        /* Variables */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --light-color: #f8f9fa;
+            --border-radius: 10px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
         }
+        
+        /* Page title */
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h1 {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 1.75rem;
+            margin: 0;
+        }
+        
+        /* Tenants container */
+        .tenants-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Tenant card styling */
+        .tenant-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: none;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
         .tenant-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        .avatar-placeholder {
-            width: 80px;
-            height: 80px;
-            background-color: #e9ecef;
+        
+        .tenant-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        /* Avatar styling */
+        .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            font-size: 2rem;
-            color: #6c757d;
-            margin: 0 auto 15px;
+            font-size: 1.75rem;
+            font-weight: 500;
+            color: white;
+            position: relative;
+            overflow: hidden;
         }
-        .document-icon {
-            font-size: 1.2rem;
-            margin-right: 5px;
+        
+        .avatar-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #3498db, #8e44ad);
+            z-index: -1;
         }
-        .document-link {
+        
+        /* Tenant info */
+        .tenant-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 0.75rem;
+        }
+        
+        .tenant-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            width: 100%;
+        }
+        
+        .tenant-info-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .tenant-info-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+        }
+        
+        .tenant-info-item.muted i,
+        .tenant-info-item.muted span {
+            color: #95a5a6;
+        }
+        
+        .tenant-info-item a {
+            color: var(--primary-color);
             text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .tenant-info-item a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        /* Document indicators */
+        .documents-section {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            margin-top: auto;
+            margin-bottom: 1.25rem;
+        }
+        
+        .document-indicator {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .document-indicator.available {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .document-indicator.available:hover {
+            background-color: var(--success-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .document-indicator.missing {
+            background-color: rgba(149, 165, 166, 0.1);
+            color: #95a5a6;
+        }
+        
+        /* Tenant actions */
+        .tenant-actions {
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .action-btn {
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .action-btn.primary {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+            border: none;
+        }
+        
+        .action-btn.primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .action-btn.secondary {
+            background-color: rgba(44, 62, 80, 0.05);
+            color: var(--secondary-color);
+            border: none;
+        }
+        
+        .action-btn.secondary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        /* Add button */
+        .add-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            transition: var(--transition);
+            border: none;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+            background-color: #2980b9;
+            color: white;
+        }
+        
+        .add-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #bdc3c7;
         }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid">
+    <div class="page-header">
         <h1>Liste des Locataires</h1>
-        <a href="{{ path('app_tenant_new') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle"></i> Ajouter un locataire
+        <a href="{{ path('app_tenant_new') }}" class="add-btn">
+            <i class="fas fa-plus-circle"></i>Ajouter un locataire
         </a>
     </div>
 
@@ -53,72 +280,105 @@
         {% endfor %}
     {% endfor %}
 
-    <div class="row">
-        {% for tenant in tenants %}
-            <div class="col-md-4 mb-4">
-                <div class="card tenant-card">
-                    <div class="card-body text-center">
-                        <div class="avatar-placeholder">
+    {% if tenants|length > 0 %}
+        <div class="tenants-container">
+            {% for tenant in tenants %}
+                <div class="tenant-card">
+                    <div class="tenant-content">
+                        <!-- Avatar -->
+                        <div class="avatar">
+                            <div class="avatar-bg"></div>
                             {{ tenant.firstName|first|upper }}{{ tenant.lastName|first|upper }}
                         </div>
-                        <h5 class="card-title">{{ tenant.firstName }} {{ tenant.lastName }}</h5>
-                        <p class="card-text">
-                            <i class="fas fa-envelope"></i> {{ tenant.email }}<br>
-                            {% if tenant.phone %}
-                                <i class="fas fa-phone"></i> {{ tenant.phone }}<br>
-                            {% endif %}
-                            {% if tenant.apartment %}
-                                <i class="fas fa-home"></i> <a href="{{ path('app_apartment_show', {'id': tenant.apartment.id}) }}">{{ tenant.apartment.name }}</a>
-                            {% else %}
-                                <i class="fas fa-home text-muted"></i> <span class="text-muted">Aucun appartement</span>
-                            {% endif %}
-                        </p>
                         
-                        <div class="d-flex justify-content-around mb-3">
+                        <!-- Tenant name and info -->
+                        <h3 class="tenant-name">{{ tenant.firstName }} {{ tenant.lastName }}</h3>
+                        
+                        <div class="tenant-info">
+                            <div class="tenant-info-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ tenant.email }}</span>
+                            </div>
+                            
+                            {% if tenant.phone %}
+                                <div class="tenant-info-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>{{ tenant.phone }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if tenant.apartment %}
+                                <div class="tenant-info-item">
+                                    <i class="fas fa-home"></i>
+                                    <a href="{{ path('app_apartment_show', {'id': tenant.apartment.id}) }}">{{ tenant.apartment.name }}</a>
+                                </div>
+                            {% else %}
+                                <div class="tenant-info-item muted">
+                                    <i class="fas fa-home"></i>
+                                    <span>Aucun appartement</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Document indicators -->
+                        <div class="documents-section">
                             {% if tenant.idCardFilename %}
-                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.idCardFilename) }}" target="_blank" class="document-link" title="Pièce d'identité">
-                                    <i class="fas fa-id-card document-icon text-success"></i>
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.idCardFilename) }}" target="_blank" class="document-indicator available" title="Pièce d'identité">
+                                    <i class="fas fa-id-card"></i>
                                 </a>
                             {% else %}
-                                <i class="fas fa-id-card document-icon text-muted" title="Pas de pièce d'identité"></i>
+                                <div class="document-indicator missing" title="Pas de pièce d'identité">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
                             {% endif %}
                             
                             {% if tenant.leaseContractFilename %}
-                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.leaseContractFilename) }}" target="_blank" class="document-link" title="Contrat de bail">
-                                    <i class="fas fa-file-contract document-icon text-success"></i>
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.leaseContractFilename) }}" target="_blank" class="document-indicator available" title="Contrat de bail">
+                                    <i class="fas fa-file-contract"></i>
                                 </a>
                             {% else %}
-                                <i class="fas fa-file-contract document-icon text-muted" title="Pas de contrat de bail"></i>
+                                <div class="document-indicator missing" title="Pas de contrat de bail">
+                                    <i class="fas fa-file-contract"></i>
+                                </div>
                             {% endif %}
                             
                             {% if tenant.guarantorDocumentFilename %}
-                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.guarantorDocumentFilename) }}" target="_blank" class="document-link" title="Document du garant">
-                                    <i class="fas fa-file-signature document-icon text-success"></i>
+                                <a href="{{ asset('uploads/tenant_documents/' ~ tenant.guarantorDocumentFilename) }}" target="_blank" class="document-indicator available" title="Document du garant">
+                                    <i class="fas fa-file-signature"></i>
                                 </a>
                             {% else %}
-                                <i class="fas fa-file-signature document-icon text-muted" title="Pas de document garant"></i>
+                                <div class="document-indicator missing" title="Pas de document garant">
+                                    <i class="fas fa-file-signature"></i>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="card-footer bg-white">
-                        <div class="btn-group w-100">
-                            <a href="{{ path('app_tenant_show', {'id': tenant.id}) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i> Détails
+                    
+                    <!-- Action buttons -->
+                    <div class="tenant-actions">
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_tenant_show', {'id': tenant.id}) }}" class="action-btn primary flex-grow-1">
+                                <i class="fas fa-eye"></i>Détails
                             </a>
-                            <a href="{{ path('app_tenant_edit', {'id': tenant.id}) }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-edit"></i> Modifier
+                            <a href="{{ path('app_tenant_edit', {'id': tenant.id}) }}" class="action-btn secondary flex-grow-1">
+                                <i class="fas fa-edit"></i>Modifier
                             </a>
                         </div>
                     </div>
                 </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-users"></i>
             </div>
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    Aucun locataire trouvé. Commencez par en ajouter un !
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+            <h4>Aucun locataire disponible</h4>
+            <p>Commencez par ajouter votre premier locataire.</p>
+            <a href="{{ path('app_tenant_new') }}" class="add-btn mt-3">
+                <i class="fas fa-plus-circle"></i>Ajouter un locataire
+            </a>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

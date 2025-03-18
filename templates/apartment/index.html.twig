@@ -5,34 +5,288 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
-        .apartment-card {
-            transition: transform 0.3s ease;
-            margin-bottom: 20px;
-            height: 100%;
+        /* Variables */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --light-color: #f8f9fa;
+            --border-radius: 10px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
         }
+        
+        /* Page title */
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h1 {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 1.75rem;
+            margin: 0;
+        }
+        
+        /* Apartments container */
+        .apartments-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Apartment card styling */
+        .apartment-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: none;
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
         .apartment-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        .card-img-top {
+        
+        .apartment-img {
             height: 200px;
-            object-fit: cover;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        
+        .apartment-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .apartment-card:hover .apartment-img img {
+            transform: scale(1.05);
+        }
+        
+        .apartment-img-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e5e6 100%);
+            width: 100%;
+            height: 100%;
+        }
+        
+        .apartment-img-placeholder i {
+            font-size: 3rem;
+            color: rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Status badge */
         .status-badge {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 1rem;
+            right: 1rem;
             z-index: 10;
+            padding: 0.4rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge.loue {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .status-badge.vacant {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .status-badge.maintenance {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .status-badge.vente {
+            background-color: var(--info-color);
+            color: white;
+        }
+        
+        /* Apartment content */
+        .apartment-content {
+            padding: 1.25rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .apartment-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .apartment-address {
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .apartment-address i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+        
+        .apartment-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .apartment-info-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .apartment-info-item i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+            width: 16px;
+        }
+        
+        .apartment-price {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .apartment-facilities {
+            display: flex;
+            gap: 1rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .apartment-facility {
+            display: flex;
+            align-items: center;
+        }
+        
+        .apartment-facility i {
+            color: #95a5a6;
+            margin-right: 0.35rem;
+        }
+        
+        /* Apartment actions */
+        .apartment-actions {
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .action-btn {
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .action-btn.primary {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+            border: none;
+        }
+        
+        .action-btn.primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .action-btn.secondary {
+            background-color: rgba(44, 62, 80, 0.05);
+            color: var(--secondary-color);
+            border: none;
+        }
+        
+        .action-btn.secondary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        /* Add button */
+        .add-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            transition: var(--transition);
+            border: none;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+            background-color: #2980b9;
+            color: white;
+        }
+        
+        .add-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #bdc3c7;
         }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid">
+    <div class="page-header">
         <h1>Liste des Appartements</h1>
-        <a href="{{ path('app_apartment_new') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle"></i> Ajouter un appartement
+        <a href="{{ path('app_apartment_new') }}" class="add-btn">
+            <i class="fas fa-plus-circle"></i>Ajouter un appartement
         </a>
     </div>
 
@@ -45,63 +299,92 @@
         {% endfor %}
     {% endfor %}
 
-    <div class="row">
-        {% for apartment in apartments %}
-            <div class="col-md-4">
-                <div class="card apartment-card">
+    {% if apartments|length > 0 %}
+        <div class="apartments-container">
+            {% for apartment in apartments %}
+                <div class="apartment-card">
+                    <!-- Status badge -->
                     {% if apartment.status == 'Loué' %}
-                        <span class="badge bg-success status-badge">{{ apartment.status }}</span>
+                        <span class="status-badge loue">{{ apartment.status }}</span>
                     {% elseif apartment.status == 'Vacant' %}
-                        <span class="badge bg-danger status-badge">{{ apartment.status }}</span>
+                        <span class="status-badge vacant">{{ apartment.status }}</span>
                     {% elseif apartment.status == 'Maintenance' %}
-                        <span class="badge bg-warning status-badge">{{ apartment.status }}</span>
+                        <span class="status-badge maintenance">{{ apartment.status }}</span>
                     {% elseif apartment.status == 'En vente' %}
-                        <span class="badge bg-info status-badge">{{ apartment.status }}</span>
+                        <span class="status-badge vente">{{ apartment.status }}</span>
                     {% endif %}
                     
-                    {% if apartment.imageFilename %}
-                        <img src="{{ asset('uploads/apartments/' ~ apartment.imageFilename) }}" class="card-img-top" alt="{{ apartment.name }}">
-                    {% else %}
-                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center">
-                            <i class="fas fa-home fa-3x text-muted"></i>
-                        </div>
-                    {% endif %}
+                    <!-- Apartment image -->
+                    <div class="apartment-img">
+                        {% if apartment.imageFilename %}
+                            <img src="{{ asset('uploads/apartments/' ~ apartment.imageFilename) }}" alt="{{ apartment.name }}">
+                        {% else %}
+                            <div class="apartment-img-placeholder">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        {% endif %}
+                    </div>
                     
-                    <div class="card-body">
-                        <h5 class="card-title">{{ apartment.name }}</h5>
-                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> {{ apartment.address }}</p>
-                        <div class="d-flex justify-content-between">
-                            <span><i class="fas fa-euro-sign"></i> {{ apartment.rentalPrice|number_format(0, ',', ' ') }} €/mois</span>
-                            <span><i class="fas fa-ruler-combined"></i> {{ apartment.size }} m²</span>
+                    <!-- Apartment details -->
+                    <div class="apartment-content">
+                        <h3 class="apartment-title">{{ apartment.name }}</h3>
+                        <div class="apartment-address">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ apartment.address }}</span>
                         </div>
-                        <div class="mt-2 d-flex justify-content-between">
+                        
+                        <div class="apartment-info">
+                            <div class="apartment-info-item apartment-price">
+                                <i class="fas fa-euro-sign"></i>
+                                <span>{{ apartment.rentalPrice|number_format(0, ',', ' ') }} €/mois</span>
+                            </div>
+                            <div class="apartment-info-item">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span>{{ apartment.size }} m²</span>
+                            </div>
+                        </div>
+                        
+                        <div class="apartment-facilities">
                             {% if apartment.bedrooms %}
-                                <span><i class="fas fa-bed"></i> {{ apartment.bedrooms }}</span>
+                                <div class="apartment-facility">
+                                    <i class="fas fa-bed"></i>
+                                    <span>{{ apartment.bedrooms }}</span>
+                                </div>
                             {% endif %}
                             {% if apartment.bathrooms %}
-                                <span><i class="fas fa-bath"></i> {{ apartment.bathrooms }}</span>
+                                <div class="apartment-facility">
+                                    <i class="fas fa-bath"></i>
+                                    <span>{{ apartment.bathrooms }}</span>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="card-footer bg-white">
-                        <div class="btn-group w-100">
-                            <a href="{{ path('app_apartment_show', {'id': apartment.id}) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i> Détails
+                    
+                    <!-- Action buttons -->
+                    <div class="apartment-actions">
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_apartment_show', {'id': apartment.id}) }}" class="action-btn primary flex-grow-1">
+                                <i class="fas fa-eye"></i>Détails
                             </a>
-                            <a href="{{ path('app_apartment_edit', {'id': apartment.id}) }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-edit"></i> Modifier
+                            <a href="{{ path('app_apartment_edit', {'id': apartment.id}) }}" class="action-btn secondary flex-grow-1">
+                                <i class="fas fa-edit"></i>Modifier
                             </a>
                         </div>
                     </div>
                 </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-building"></i>
             </div>
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    Aucun appartement trouvé. Commencez par en ajouter un !
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+            <h4>Aucun appartement disponible</h4>
+            <p>Commencez par ajouter votre premier appartement.</p>
+            <a href="{{ path('app_apartment_new') }}" class="add-btn mt-3">
+                <i class="fas fa-plus-circle"></i>Ajouter un appartement
+            </a>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

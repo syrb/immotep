@@ -5,55 +5,359 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
-        .stats-card {
-            border-radius: 10px;
+        /* Variables */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --light-color: #f8f9fa;
+            --border-radius: 10px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+        
+        /* Page title */
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h1 {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 1.75rem;
+            margin: 0;
+        }
+        
+        /* Stats cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            color: white;
+            height: 100%;
         }
-        .stats-card:hover {
+        
+        .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        .stats-icon {
+        
+        .stat-card.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .stat-card.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+        }
+        
+        .stat-card.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .stat-card.primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        
+        .stat-card-content {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .stat-icon {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin-right: 1.25rem;
+            font-size: 1.5rem;
+        }
+        
+        .stat-details {
+            flex-grow: 1;
+        }
+        
+        .stat-value {
             font-size: 2.5rem;
-            opacity: 0.8;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
         }
-        .stats-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-        }
-        .stats-label {
+        
+        .stat-label {
             font-size: 1rem;
-            color: rgba(255,255,255,0.8);
+            opacity: 0.9;
         }
-        .payment-badge {
-            font-size: 0.85rem;
+        
+        .stat-bg-icon {
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 8rem;
+            opacity: 0.1;
+            z-index: 1;
         }
+        
+        /* Tabs styling */
+        .payment-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 0.5rem;
+        }
+        
+        .payment-tab {
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: var(--secondary-color);
+            border: none;
+        }
+        
+        .payment-tab i {
+            margin-right: 0.5rem;
+        }
+        
+        .payment-tab:hover:not(.active) {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .payment-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Tab content */
+        .tab-content {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        .tab-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .tab-header-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin-right: 1rem;
+            color: white;
+        }
+        
+        .tab-header-icon.success {
+            background-color: var(--success-color);
+        }
+        
+        .tab-header-icon.warning {
+            background-color: var(--warning-color);
+        }
+        
+        .tab-header-icon.danger {
+            background-color: var(--danger-color);
+        }
+        
+        .tab-header-icon.info {
+            background-color: var(--primary-color);
+        }
+        
+        .tab-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+        
+        /* Payment table */
+        .payment-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .payment-table th {
+            background-color: #f9fafb;
+            color: var(--secondary-color);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .payment-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+        
+        .payment-table tr:last-child td {
+            border-bottom: none;
+        }
+        
         .payment-row {
-            transition: background-color 0.3s ease;
+            transition: var(--transition);
         }
+        
         .payment-row:hover {
-            background-color: rgba(0, 123, 255, 0.05);
+            background-color: rgba(52, 152, 219, 0.05);
         }
-        .nav-tabs .nav-link {
-            color: #495057;
+        
+        /* Payment actions */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
         }
-        .nav-tabs .nav-link.active {
-            font-weight: bold;
-            color: #007bff;
-            border-bottom: 3px solid #007bff;
+        
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn.success {
+            background-color: var(--success-color);
+        }
+        
+        .action-btn.warning {
+            background-color: var(--warning-color);
+        }
+        
+        .action-btn.primary {
+            background-color: var(--primary-color);
+        }
+        
+        .action-btn.secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-badge.warning {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .status-badge.danger {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        
+        /* Empty states */
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #bdc3c7;
+        }
+        
+        /* Button */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: none;
+        }
+        
+        .btn-action.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-action.primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-action i {
+            margin-right: 0.5rem;
         }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid">
+    <div class="page-header">
         <h1>Gestion des Paiements</h1>
-        <a href="{{ path('app_lease_index') }}" class="btn btn-primary">
-            <i class="fas fa-file-contract"></i> Gérer les baux
+        <a href="{{ path('app_lease_index') }}" class="btn-action primary">
+            <i class="fas fa-file-contract"></i>Gérer les baux
         </a>
     </div>
 
@@ -67,261 +371,303 @@
     {% endfor %}
 
     <!-- Statistiques -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stats-card bg-success text-white">
-                <div class="card-body d-flex align-items-center">
-                    <div class="stats-icon me-3">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div>
-                        <div class="stats-value">{{ summary.paid }}</div>
-                        <div class="stats-label">Paiements reçus</div>
-                    </div>
+    <div class="stats-container">
+        <div class="stat-card success">
+            <div class="stat-card-content">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-details">
+                    <div class="stat-value">{{ summary.paid }}</div>
+                    <div class="stat-label">Paiements reçus</div>
                 </div>
             </div>
+            <i class="fas fa-check-circle stat-bg-icon"></i>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card bg-warning text-white">
-                <div class="card-body d-flex align-items-center">
-                    <div class="stats-icon me-3">
-                        <i class="fas fa-hourglass-half"></i>
-                    </div>
-                    <div>
-                        <div class="stats-value">{{ summary.unpaid }}</div>
-                        <div class="stats-label">Paiements à venir</div>
-                    </div>
+        
+        <div class="stat-card warning">
+            <div class="stat-card-content">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-details">
+                    <div class="stat-value">{{ summary.unpaid }}</div>
+                    <div class="stat-label">Paiements à venir</div>
                 </div>
             </div>
+            <i class="fas fa-hourglass-half stat-bg-icon"></i>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card bg-danger text-white">
-                <div class="card-body d-flex align-items-center">
-                    <div class="stats-icon me-3">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <div>
-                        <div class="stats-value">{{ summary.late }}</div>
-                        <div class="stats-label">Paiements en retard</div>
-                    </div>
+        
+        <div class="stat-card danger">
+            <div class="stat-card-content">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="stat-details">
+                    <div class="stat-value">{{ summary.late }}</div>
+                    <div class="stat-label">Paiements en retard</div>
                 </div>
             </div>
+            <i class="fas fa-exclamation-circle stat-bg-icon"></i>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card bg-primary text-white">
-                <div class="card-body d-flex align-items-center">
-                    <div class="stats-icon me-3">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <div>
-                        <div class="stats-value">{{ summary.total }}</div>
-                        <div class="stats-label">Total des paiements</div>
-                    </div>
+        
+        <div class="stat-card primary">
+            <div class="stat-card-content">
+                <div class="stat-icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div class="stat-details">
+                    <div class="stat-value">{{ summary.total }}</div>
+                    <div class="stat-label">Total des paiements</div>
                 </div>
             </div>
+            <i class="fas fa-calculator stat-bg-icon"></i>
         </div>
     </div>
 
     <!-- Onglets de navigation -->
-    <ul class="nav nav-tabs mb-4" id="paymentTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="true">
-                <i class="fas fa-calendar-alt"></i> Prochaines échéances
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="late-tab" data-bs-toggle="tab" data-bs-target="#late" type="button" role="tab" aria-controls="late" aria-selected="false">
-                <i class="fas fa-exclamation-triangle"></i> Paiements en retard
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="false">
-                <i class="fas fa-list"></i> Tous les paiements
-            </button>
-        </li>
-    </ul>
+    <div class="payment-tabs" id="paymentTabs" role="tablist">
+        <button class="payment-tab active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="true">
+            <i class="fas fa-calendar-alt"></i>Prochaines échéances
+        </button>
+        <button class="payment-tab" id="late-tab" data-bs-toggle="tab" data-bs-target="#late" type="button" role="tab" aria-controls="late" aria-selected="false">
+            <i class="fas fa-exclamation-triangle"></i>Paiements en retard
+        </button>
+        <button class="payment-tab" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="false">
+            <i class="fas fa-list"></i>Tous les paiements
+        </button>
+    </div>
 
     <!-- Contenu des onglets -->
     <div class="tab-content" id="paymentTabsContent">
         <!-- Prochaines échéances -->
-        <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Prochaines échéances</h5>
+        <div class="tab-pane active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+            <div class="tab-header">
+                <div class="tab-header-icon info">
+                    <i class="fas fa-calendar-alt"></i>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Appartement</th>
-                                    <th>Locataire(s)</th>
-                                    <th>Échéance</th>
-                                    <th>Montant</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for payment in upcoming_payments %}
-                                    <tr class="payment-row">
-                                        <td>{{ payment.lease.apartment.name }}</td>
-                                        <td>{{ payment.lease.tenantsNames }}</td>
-                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
-                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
-                                        <td>
-                                            <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
-                                                <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="btn btn-sm btn-primary" title="Voir le bail">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="5" class="text-center">Aucun paiement à venir</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="tab-title">Prochaines échéances</h2>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="payment-table">
+                    <thead>
+                        <tr>
+                            <th>Appartement</th>
+                            <th>Locataire(s)</th>
+                            <th>Échéance</th>
+                            <th>Montant</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in upcoming_payments %}
+                            <tr class="payment-row">
+                                <td>{{ payment.lease.apartment.name }}</td>
+                                <td>{{ payment.lease.tenantsNames }}</td>
+                                <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                <td><strong>{{ payment.amount|number_format(2, ',', ' ') }} €</strong></td>
+                                <td class="text-end">
+                                    <div class="action-buttons">
+                                        <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                            <button type="submit" class="action-btn success" title="Marquer comme payé">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="action-btn secondary" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="action-btn primary" title="Voir le bail">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <p>Aucun paiement à venir</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
         
         <!-- Paiements en retard -->
-        <div class="tab-pane fade" id="late" role="tabpanel" aria-labelledby="late-tab">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">Paiements en retard</h5>
+        <div class="tab-pane" id="late" role="tabpanel" aria-labelledby="late-tab">
+            <div class="tab-header">
+                <div class="tab-header-icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Appartement</th>
-                                    <th>Locataire(s)</th>
-                                    <th>Échéance</th>
-                                    <th>Montant</th>
-                                    <th>Retard</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for payment in late_payments %}
-                                    <tr class="payment-row">
-                                        <td>{{ payment.lease.apartment.name }}</td>
-                                        <td>{{ payment.lease.tenantsNames }}</td>
-                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
-                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
-                                        <td>
-                                            {% set days_late = date().diff(payment.dueDate).days %}
-                                            <span class="badge bg-danger">{{ days_late }} jour{{ days_late > 1 ? 's' : '' }}</span>
-                                        </td>
-                                        <td>
-                                            <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
-                                                <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="btn btn-sm btn-primary" title="Voir le bail">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="6" class="text-center">Aucun paiement en retard (Bravo !)</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="tab-title">Paiements en retard</h2>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="payment-table">
+                    <thead>
+                        <tr>
+                            <th>Appartement</th>
+                            <th>Locataire(s)</th>
+                            <th>Échéance</th>
+                            <th>Montant</th>
+                            <th>Retard</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in late_payments %}
+                            <tr class="payment-row">
+                                <td>{{ payment.lease.apartment.name }}</td>
+                                <td>{{ payment.lease.tenantsNames }}</td>
+                                <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                <td><strong>{{ payment.amount|number_format(2, ',', ' ') }} €</strong></td>
+                                <td>
+                                    {% set days_late = date().diff(payment.dueDate).days %}
+                                    <span class="status-badge danger">{{ days_late }} jour{{ days_late > 1 ? 's' : '' }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="action-buttons">
+                                        <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                            <button type="submit" class="action-btn success" title="Marquer comme payé">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="action-btn secondary" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="action-btn primary" title="Voir le bail">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <p>Aucun paiement en retard (Bravo !)</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
         
         <!-- Tous les paiements -->
-        <div class="tab-pane fade" id="all" role="tabpanel" aria-labelledby="all-tab">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Tous les paiements</h5>
+        <div class="tab-pane" id="all" role="tabpanel" aria-labelledby="all-tab">
+            <div class="tab-header">
+                <div class="tab-header-icon secondary">
+                    <i class="fas fa-list"></i>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Appartement</th>
-                                    <th>Locataire(s)</th>
-                                    <th>Échéance</th>
-                                    <th>Montant</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for payment in all_payments %}
-                                    <tr class="payment-row">
-                                        <td>{{ payment.lease.apartment.name }}</td>
-                                        <td>{{ payment.lease.tenantsNames }}</td>
-                                        <td>{{ payment.dueDate|date('d/m/Y') }}</td>
-                                        <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
-                                        <td>
-                                            {% if payment.status == 'Payé' %}
-                                                <span class="badge bg-success payment-badge">{{ payment.status }}</span>
-                                            {% elseif payment.status == 'Non payé' and payment.isLate %}
-                                                <span class="badge bg-danger payment-badge">En retard</span>
-                                            {% else %}
-                                                <span class="badge bg-warning text-dark payment-badge">{{ payment.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if payment.status != 'Payé' %}
-                                                <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
-                                                    <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                </form>
-                                            {% else %}
-                                                <form method="post" action="{{ path('app_payment_mark_as_unpaid', {'id': payment.id}) }}" class="d-inline">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-as-unpaid' ~ payment.id) }}">
-                                                    <button type="submit" class="btn btn-sm btn-warning" title="Marquer comme non payé">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                            <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="btn btn-sm btn-primary" title="Voir le bail">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="6" class="text-center">Aucun paiement trouvé</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="tab-title">Tous les paiements</h2>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="payment-table">
+                    <thead>
+                        <tr>
+                            <th>Appartement</th>
+                            <th>Locataire(s)</th>
+                            <th>Échéance</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in all_payments %}
+                            <tr class="payment-row">
+                                <td>{{ payment.lease.apartment.name }}</td>
+                                <td>{{ payment.lease.tenantsNames }}</td>
+                                <td>{{ payment.dueDate|date('d/m/Y') }}</td>
+                                <td><strong>{{ payment.amount|number_format(2, ',', ' ') }} €</strong></td>
+                                <td>
+                                    {% if payment.status == 'Payé' %}
+                                        <span class="status-badge success">{{ payment.status }}</span>
+                                    {% elseif payment.status == 'Non payé' and payment.isLate %}
+                                        <span class="status-badge danger">En retard</span>
+                                    {% else %}
+                                        <span class="status-badge warning">{{ payment.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="action-buttons">
+                                        {% if payment.status != 'Payé' %}
+                                            <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
+                                                <button type="submit" class="action-btn success" title="Marquer comme payé">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{{ path('app_payment_mark_as_unpaid', {'id': payment.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark-as-unpaid' ~ payment.id) }}">
+                                                <button type="submit" class="action-btn warning" title="Marquer comme non payé">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        <a href="{{ path('app_payment_edit', {'id': payment.id}) }}" class="action-btn secondary" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ path('app_lease_show', {'id': payment.lease.id}) }}" class="action-btn primary" title="Voir le bail">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-folder-open"></i>
+                                    </div>
+                                    <p>Aucun paiement trouvé</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion des onglets
+            const tabs = document.querySelectorAll('.payment-tab');
+            const panes = document.querySelectorAll('.tab-pane');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Désactiver tous les onglets
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Cacher tous les panneaux
+                    panes.forEach(p => p.classList.remove('active'));
+                    
+                    // Activer l'onglet cliqué
+                    tab.classList.add('active');
+                    
+                    // Afficher le panneau correspondant
+                    const target = document.querySelector(tab.getAttribute('data-bs-target'));
+                    target.classList.add('active');
+                });
+            });
+        });
+    </script>
 {% endblock %}

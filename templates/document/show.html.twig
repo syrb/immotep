@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détail du document{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index') }}">Documents</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index', {'year': document.documentDate|date('Y')}) }}">{{ document.documentDate|date('Y') }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ document.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Informations du document</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Titre:</strong> {{ document.title }}
+                    </div>
+                    {% if document.description %}
+                    <div class="mb-3">
+                        <strong>Description:</strong> {{ document.description }}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <strong>Date du document:</strong> {{ document.documentDate|date('d/m/Y') }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Catégorie:</strong> {{ document.category ?? 'Non catégorisé' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Fichier d'origine:</strong> {{ document.originalFilename ?? document.filename }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Type de fichier:</strong> {{ document.mimeType }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Date d'ajout:</strong> {{ document.createdAt|date('d/m/Y H:i') }}
+                    </div>
+                    {% if document.updatedAt %}
+                    <div class="mb-3">
+                        <strong>Dernière modification:</strong> {{ document.updatedAt|date('d/m/Y H:i') }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_document_download', {'id': document.id}) }}" class="btn btn-primary">
+                            <i class="bi bi-download me-2"></i>Télécharger
+                        </a>
+                        <a href="{{ path('app_document_edit', {'id': document.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil me-2"></i>Modifier
+                        </a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-2"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Aperçu du document</h5>
+                </div>
+                <div class="card-body">
+                    {% if document.mimeType starts with 'image/' %}
+                        <img src="{{ asset('uploads/documents/' ~ document.filename) }}" class="img-fluid" alt="{{ document.title }}">
+                    {% elseif document.mimeType == 'application/pdf' %}
+                        <div class="ratio ratio-16x9">
+                            <iframe src="{{ asset('uploads/documents/' ~ document.filename) }}" allowfullscreen></iframe>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p>L'aperçu n'est pas disponible pour ce type de fichier ({{ document.mimeType }}).</p>
+                            <p>Vous pouvez <a href="{{ path('app_document_download', {'id': document.id}) }}" class="alert-link">télécharger le fichier</a> pour le consulter.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer le document "{{ document.title }}" ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('app_document_delete', {'id': document.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ document.id) }}">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

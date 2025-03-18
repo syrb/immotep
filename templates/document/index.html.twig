@@ -1,0 +1,419 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des documents{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .doc-section {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .page-header h1 {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .filter-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        background: transparent;
+        border: 1px solid #e0e0e0;
+        color: #5c6570;
+        transition: all 0.2s;
+    }
+    
+    .filter-btn.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+        box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+    }
+    
+    .filter-btn:hover:not(.active) {
+        background-color: #f8f9fa;
+        border-color: #d0d0d0;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .section-icon {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        margin-right: 0.75rem;
+    }
+    
+    .filter-icon {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+    
+    .add-icon {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+    
+    .list-icon {
+        background-color: rgba(52, 73, 94, 0.1);
+        color: #34495e;
+    }
+    
+    .section-title {
+        font-weight: 600;
+        color: #34495e;
+        margin: 0;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem;
+        border-color: #e0e0e0;
+    }
+    
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+    
+    .form-select {
+        border-radius: 8px;
+        height: calc(2.5rem + 2px);
+        border-color: #e0e0e0;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #34495e;
+    }
+    
+    .submit-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        background-color: #3498db;
+        border: none;
+        font-weight: 500;
+        box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        transition: all 0.2s;
+    }
+    
+    .submit-btn:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+    }
+    
+    .submit-icon {
+        margin-right: 0.5rem;
+    }
+    
+    .doc-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .doc-table th {
+        font-weight: 600;
+        color: #5c6570;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 2px solid #f0f0f0;
+        background-color: #f9f9f9;
+    }
+    
+    .doc-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+    
+    .doc-table tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .doc-category {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .doc-category.facture {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+    
+    .doc-category.contrat {
+        background-color: rgba(155, 89, 182, 0.1);
+        color: #9b59b6;
+    }
+    
+    .doc-category.quittance {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+    
+    .doc-category.autre {
+        background-color: rgba(149, 165, 166, 0.1);
+        color: #7f8c8d;
+    }
+    
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.35rem;
+        color: white;
+        border: none;
+        transition: all 0.2s;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .action-btn.download {
+        background-color: #3498db;
+    }
+    
+    .action-btn.view {
+        background-color: #2ecc71;
+    }
+    
+    .action-btn.edit {
+        background-color: #f39c12;
+    }
+    
+    .action-btn.delete {
+        background-color: #e74c3c;
+    }
+    
+    .empty-state {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: #7f8c8d;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #bdc3c7;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <h1>Gestion des documents</h1>
+    </div>
+    
+    <div class="row">
+        <!-- Filtrage par année -->
+        <div class="col-md-12 mb-4">
+            <div class="doc-section">
+                <div class="section-header">
+                    <div class="section-icon filter-icon">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <h2 class="section-title">Filtrer par année</h2>
+                </div>
+                <div class="filter-section">
+                    <a href="{{ path('app_document_index') }}" class="filter-btn {% if selectedYear is null %}active{% endif %}">
+                        <i class="fas fa-layer-group me-1"></i> Toutes les années
+                    </a>
+                    {% for year in years %}
+                        <a href="{{ path('app_document_index', {'year': year}) }}" class="filter-btn {% if year == selectedYear %}active{% endif %}">
+                            {{ year }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulaire d'ajout -->
+        <div class="col-md-12 mb-4">
+            <div class="doc-section">
+                <div class="section-header">
+                    <div class="section-icon add-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <h2 class="section-title">Ajouter un document</h2>
+                </div>
+                
+                {{ form_start(form) }}
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.title, 'Titre du document', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Titre du document'}}) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.documentDate, 'Date du document', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.documentDate, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.category, 'Catégorie', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.documentFile, 'Fichier', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.documentFile, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Description du document (optionnel)'}}) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="submit-btn btn btn-primary">
+                        <i class="fas fa-upload submit-icon"></i>Ajouter le document
+                    </button>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+        
+        <!-- Liste des documents -->
+        <div class="col-md-12">
+            <div class="doc-section">
+                <div class="section-header">
+                    <div class="section-icon list-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h2 class="section-title">
+                        {% if selectedYear %}
+                            Documents de {{ selectedYear }}
+                        {% else %}
+                            Tous les documents
+                        {% endif %}
+                    </h2>
+                </div>
+                
+                {% if documents|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="doc-table">
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Date</th>
+                                    <th>Catégorie</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for document in documents %}
+                                    <tr>
+                                        <td>{{ document.title }}</td>
+                                        <td>{{ document.documentDate|date('d/m/Y') }}</td>
+                                        <td>
+                                            <span class="doc-category {{ document.category|default('autre')|lower }}">
+                                                {{ document.category|default('Non catégorisé') }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ path('app_document_download', {'id': document.id}) }}" class="action-btn download" title="Télécharger">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <a href="{{ path('app_document_show', {'id': document.id}) }}" class="action-btn view" title="Voir">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('app_document_edit', {'id': document.id}) }}" class="action-btn edit" title="Modifier">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <button type="button" class="action-btn delete" data-bs-toggle="modal" data-bs-target="#deleteModal-{{ document.id }}" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+
+                                            <!-- Modal de confirmation de suppression -->
+                                            <div class="modal fade" id="deleteModal-{{ document.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Confirmer la suppression</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-center">
+                                                            <div class="mb-3 text-danger">
+                                                                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                                                            </div>
+                                                            <p>Êtes-vous sûr de vouloir supprimer le document<br><strong>"{{ document.title }}"</strong> ?</p>
+                                                            <p class="text-muted small">Cette action est irréversible.</p>
+                                                        </div>
+                                                        <div class="modal-footer justify-content-center">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                            <form method="post" action="{{ path('app_document_delete', {'id': document.id}) }}">
+                                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ document.id) }}">
+                                                                <button type="submit" class="btn btn-danger">Supprimer</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h4>Aucun document trouvé</h4>
+                        <p>
+                            {% if selectedYear %}
+                                Aucun document pour l'année {{ selectedYear }}.<br>Utilisez le formulaire ci-dessus pour ajouter votre premier document.
+                            {% else %}
+                                Aucun document disponible.<br>Utilisez le formulaire ci-dessus pour ajouter votre premier document.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

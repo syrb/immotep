@@ -6,151 +6,387 @@
     {{ parent() }}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        .dashboard-card {
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
+        /* Variables */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #f8f9fa;
+            --border-radius: 10px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+        
+        /* Page title */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 1.75rem;
+        }
+        
+        /* Cards styling */
+        .dashboard-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
             padding: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-        .stat-card {
-            text-align: center;
-            border-left: 4px solid #3498db;
-        }
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-        .status-loue {
-            background-color: #2ecc71;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-        .status-vacant {
-            background-color: #e74c3c;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-        .status-maintenance {
-            background-color: #f39c12;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-        .payment-ok {
-            color: #2ecc71;
-            font-weight: bold;
-        }
-        .payment-late {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        .table-responsive {
-            overflow-x: auto;
-        }
-        .finance-card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+        
+        .dashboard-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        
+        /* Stats cards */
+        .stat-card {
+            position: relative;
+            padding: 1.5rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            border-radius: var(--border-radius);
             overflow: hidden;
         }
-        .finance-card-header {
-            background-color: #3498db;
+        
+        .stat-icon {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            font-size: 5rem;
+            opacity: 0.1;
+            color: currentColor;
+        }
+        
+        .stat-card.income {
+            background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
             color: white;
-            padding: 1rem;
-            font-weight: bold;
         }
-        .finance-card-body {
-            padding: 1.5rem;
+        
+        .stat-card.expense {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: white;
         }
-        .finance-value {
+        
+        .stat-card.occupancy {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: white;
+        }
+        
+        .stat-value {
             font-size: 2.5rem;
-            font-weight: bold;
+            font-weight: 700;
             margin-bottom: 0.5rem;
         }
-        .finance-label {
-            color: #7f8c8d;
+        
+        .stat-label {
             font-size: 1rem;
+            opacity: 0.8;
         }
-        .finance-income {
+        
+        .stat-sub {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Date picker */
+        .date-filter {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border-color: #e0e0e0;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+        
+        /* Chart */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        
+        /* Payment tables */
+        .dashboard-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 0;
+        }
+        
+        .dashboard-table th {
+            background-color: #f9fafb;
+            color: var(--secondary-color);
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .dashboard-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .dashboard-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .dashboard-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.paid {
+            background-color: rgba(46, 204, 113, 0.1);
             color: #2ecc71;
         }
-        .finance-expense {
+        
+        .status-badge.due-soon {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        
+        .status-badge.late {
+            background-color: rgba(231, 76, 60, 0.1);
             color: #e74c3c;
         }
-        .finance-profit {
+        
+        .status-badge.upcoming {
+            background-color: rgba(52, 152, 219, 0.1);
             color: #3498db;
         }
-        .finance-period-selector {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+        
+        /* Row highlighting */
+        .row-upcoming {
+            background-color: rgba(52, 152, 219, 0.05);
         }
-        .payment-due-soon {
-            background-color: #fff3cd;
+        
+        .row-due-soon {
+            background-color: rgba(243, 156, 18, 0.05);
         }
-        .payment-overdue {
-            background-color: #f8d7da;
+        
+        .row-late {
+            background-color: rgba(231, 76, 60, 0.05);
         }
-        .payment-status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        .date-range-picker {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
+        
+        /* Action buttons */
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            color: white;
+            transition: var(--transition);
+            border: none;
             cursor: pointer;
+            margin-right: 0.25rem;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn.success {
+            background-color: var(--success-color);
+        }
+        
+        .action-btn.primary {
+            background-color: var(--primary-color);
+        }
+        
+        .action-btn.warning {
+            background-color: var(--warning-color);
+        }
+        
+        .action-btn.danger {
+            background-color: var(--danger-color);
+        }
+        
+        /* Stats overview */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-number.occupied {
+            color: var(--success-color);
+        }
+        
+        .stat-number.vacant {
+            color: var(--danger-color);
+        }
+        
+        .stat-number.maintenance {
+            color: var(--warning-color);
+        }
+        
+        /* Progress bars */
+        .progress {
+            height: 0.75rem;
+            border-radius: 1rem;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .progress-bar {
+            border-radius: 1rem;
+        }
+        
+        /* Empty states */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 0;
+            color: #95a5a6;
+        }
+        
+        /* Upcoming deadlines list */
+        .deadline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .deadline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .deadline-item:last-child {
+            border-bottom: none;
+        }
+        
+        .deadline-info {
+            flex-grow: 1;
+        }
+        
+        .deadline-meta {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .deadline-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .deadline-badge.amount {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .deadline-badge.date {
+            background-color: rgba(44, 62, 80, 0.1);
+            color: var(--secondary-color);
         }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">Dashboard de Gestion Locative</h1>
+<div class="container-fluid">
+    <div class="page-header">
+        <h1>Dashboard de Gestion Locative</h1>
+    </div>
     
     <!-- Période sélecteur -->
-    <div class="finance-period-selector">
-        <form id="period-form" method="get" class="row align-items-center">
+    <div class="date-filter">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-calendar-alt me-2"></i>Période</h2>
+        </div>
+        <form id="period-form" method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <div class="form-group">
-                    <label for="period-select">Période</label>
-                    <select id="period-select" class="form-select" onchange="handlePeriodChange()">
-                        <option value="current-year">Année en cours</option>
-                        <option value="previous-year">Année précédente</option>
-                        <option value="custom" {% if startDate is defined and endDate is defined %}selected{% endif %}>Personnalisé</option>
-                    </select>
-                </div>
+                <label for="period-select" class="form-label">Type de période</label>
+                <select id="period-select" class="form-select" onchange="handlePeriodChange()">
+                    <option value="current-year">Année en cours</option>
+                    <option value="previous-year">Année précédente</option>
+                    <option value="custom" {% if startDate is defined and endDate is defined %}selected{% endif %}>Personnalisé</option>
+                </select>
             </div>
-            <div class="col-md-7" id="date-range-container" {% if startDate is not defined or endDate is not defined %}style="display: none;"{% endif %}>
-                <div class="row">
+            <div class="col-md-8" id="date-range-container" {% if startDate is not defined or endDate is not defined %}style="display: none;"{% endif %}>
+                <div class="row g-3">
                     <div class="col-md-5">
-                        <div class="form-group">
-                            <label for="start-date">Du</label>
-                            <input type="text" id="start-date" name="startDate" class="form-control date-range-picker" value="{{ startDate|date('d/m/Y') }}" placeholder="Date de début">
-                        </div>
+                        <label for="start-date" class="form-label">Du</label>
+                        <input type="text" id="start-date" name="startDate" class="form-control date-range-picker" value="{{ startDate|date('d/m/Y') }}" placeholder="Date de début">
                     </div>
                     <div class="col-md-5">
-                        <div class="form-group">
-                            <label for="end-date">Au</label>
-                            <input type="text" id="end-date" name="endDate" class="form-control date-range-picker" value="{{ endDate|date('d/m/Y') }}" placeholder="Date de fin">
-                        </div>
+                        <label for="end-date" class="form-label">Au</label>
+                        <input type="text" id="end-date" name="endDate" class="form-control date-range-picker" value="{{ endDate|date('d/m/Y') }}" placeholder="Date de fin">
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary mb-2">Filtrer</button>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
                     </div>
                 </div>
             </div>
@@ -158,64 +394,40 @@
     </div>
     
     <!-- Aperçu financier -->
-    <h2 class="mb-3">Aperçu financier</h2>
-    <div class="row">
+    <div class="row g-4">
         <div class="col-md-4">
-            <div class="finance-card">
-                <div class="finance-card-header">
-                    <i class="fas fa-money-bill-wave"></i> Revenus
-                </div>
-                <div class="finance-card-body">
-                    <div class="finance-value finance-income">{{ currentYearIncome|number_format(2, ',', ' ') }} €</div>
-                    <div class="finance-label">Année en cours</div>
-                    
-                    <hr>
-                    
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <div class="h5 finance-income">{{ previousYearIncome|number_format(2, ',', ' ') }} €</div>
-                            <small class="text-muted">Année précédente</small>
-                        </div>
-                        <div>
-                            <div class="h5 finance-income">{{ customPeriodIncome|number_format(2, ',', ' ') }} €</div>
-                            <small class="text-muted">Période sélectionnée</small>
-                        </div>
-                    </div>
+            <div class="stat-card income">
+                <i class="fas fa-money-bill-wave stat-icon"></i>
+                <div class="stat-value">{{ currentYearIncome|number_format(2, ',', ' ') }} €</div>
+                <div class="stat-label">Revenus de l'année en cours</div>
+                <div class="stat-sub">
+                    <div>{{ previousYearIncome|number_format(2, ',', ' ') }} €<br><small>Année précédente</small></div>
+                    <div>{{ customPeriodIncome|number_format(2, ',', ' ') }} €<br><small>Période sélectionnée</small></div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-4">
-            <div class="finance-card">
-                <div class="finance-card-header">
-                    <i class="fas fa-file-invoice-dollar"></i> Impayés
-                </div>
-                <div class="finance-card-body">
-                    <div class="finance-value finance-expense">{{ totalLateAmount|number_format(2, ',', ' ') }} €</div>
-                    <div class="finance-label">{{ latePayments|length }} paiement(s) en retard</div>
-                    
-                    <hr>
-                    
-                    <a href="{{ path('app_payment_index') }}" class="btn btn-danger w-100">
-                        <i class="fas fa-exclamation-triangle"></i> Gérer les impayés
+            <div class="stat-card expense">
+                <i class="fas fa-file-invoice-dollar stat-icon"></i>
+                <div class="stat-value">{{ totalLateAmount|number_format(2, ',', ' ') }} €</div>
+                <div class="stat-label">{{ latePayments|length }} paiement(s) en retard</div>
+                <div class="mt-3">
+                    <a href="{{ path('app_payment_index') }}" class="btn btn-light w-100 fw-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Gérer les impayés
                     </a>
                 </div>
             </div>
         </div>
         
         <div class="col-md-4">
-            <div class="finance-card">
-                <div class="finance-card-header">
-                    <i class="fas fa-chart-line"></i> Taux d'occupation
-                </div>
-                <div class="finance-card-body">
-                    <div class="finance-value finance-profit">{{ occupancyRate }}%</div>
-                    <div class="finance-label">{{ occupiedApartments }}/{{ totalApartments }} appartements loués</div>
-                    
-                    <hr>
-                    
-                    <div class="progress" style="height: 25px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ occupancyRate }}%;" aria-valuenow="{{ occupancyRate }}" aria-valuemin="0" aria-valuemax="100">{{ occupancyRate }}%</div>
+            <div class="stat-card occupancy">
+                <i class="fas fa-chart-line stat-icon"></i>
+                <div class="stat-value">{{ occupancyRate }}%</div>
+                <div class="stat-label">{{ occupiedApartments }}/{{ totalApartments }} appartements loués</div>
+                <div class="mt-3">
+                    <div class="progress" style="height: 12px;">
+                        <div class="progress-bar bg-white" role="progressbar" style="width: {{ occupancyRate }}%;" aria-valuenow="{{ occupancyRate }}" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
             </div>
@@ -223,16 +435,22 @@
     </div>
     
     <!-- Graphique des revenus et dépenses -->
-    <div class="dashboard-card bg-white mt-4">
-        <h3 class="mb-3">Évolution des revenus/dépenses</h3>
-        <canvas id="financeChart" height="250"></canvas>
+    <div class="dashboard-section mt-4">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-chart-area me-2"></i>Évolution des revenus/dépenses</h2>
+        </div>
+        <div class="chart-container">
+            <canvas id="financeChart"></canvas>
+        </div>
     </div>
     
     <!-- Prochains paiements -->
-    <h2 class="mt-4 mb-3">Prochains paiements (3 mois)</h2>
-    <div class="dashboard-card bg-white">
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-calendar-check me-2"></i>Prochains paiements (3 mois)</h2>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="dashboard-table">
                 <thead>
                     <tr>
                         <th>Échéance</th>
@@ -246,30 +464,36 @@
                 <tbody>
                     {% for payment in upcomingPayments %}
                         {% set daysUntilDue = date(payment.dueDate).diff(date()).days %}
-                        <tr class="{% if daysUntilDue <= 7 %}payment-due-soon{% endif %}">
+                        <tr class="{% if daysUntilDue <= 7 %}row-due-soon{% else %}row-upcoming{% endif %}">
                             <td>{{ payment.dueDate|date('d/m/Y') }}</td>
                             <td>{{ payment.lease.apartment.name }}</td>
                             <td>{{ payment.lease.tenantsNames }}</td>
-                            <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                            <td><strong>{{ payment.amount|number_format(2, ',', ' ') }} €</strong></td>
                             <td>
                                 {% if daysUntilDue <= 7 %}
-                                    <span class="payment-status-badge bg-warning text-dark">Échéance proche</span>
+                                    <span class="status-badge due-soon">Échéance proche</span>
                                 {% else %}
-                                    <span class="payment-status-badge bg-info text-white">À venir</span>
+                                    <span class="status-badge upcoming">À venir</span>
                                 {% endif %}
                             </td>
                             <td>
                                 <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
-                                        <i class="fas fa-check"></i> Valider
+                                    <button type="submit" class="action-btn success" title="Marquer comme payé">
+                                        <i class="fas fa-check"></i>
                                     </button>
                                 </form>
+                                <a href="#" class="action-btn primary" title="Voir détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">Aucun paiement à venir dans les 3 prochains mois</td>
+                            <td colspan="6" class="empty-state">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <p class="mb-0">Aucun paiement à venir dans les 3 prochains mois</p>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -278,10 +502,12 @@
     </div>
     
     <!-- Paiements en retard -->
-    <h2 class="mt-4 mb-3">Paiements en retard</h2>
-    <div class="dashboard-card bg-white">
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-exclamation-circle me-2"></i>Paiements en retard</h2>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="dashboard-table">
                 <thead>
                     <tr>
                         <th>Échéance</th>
@@ -295,26 +521,35 @@
                 <tbody>
                     {% for payment in latePayments %}
                         {% set daysLate = date().diff(date(payment.dueDate)).days %}
-                        <tr class="payment-overdue">
+                        <tr class="row-late">
                             <td>{{ payment.dueDate|date('d/m/Y') }}</td>
                             <td>{{ payment.lease.apartment.name }}</td>
                             <td>{{ payment.lease.tenantsNames }}</td>
-                            <td>{{ payment.amount|number_format(2, ',', ' ') }} €</td>
+                            <td><strong>{{ payment.amount|number_format(2, ',', ' ') }} €</strong></td>
                             <td>
-                                <span class="payment-status-badge bg-danger text-white">{{ daysLate }} jour(s) de retard</span>
+                                <span class="status-badge late">{{ daysLate }} jour(s) de retard</span>
                             </td>
                             <td>
                                 <form method="post" action="{{ path('app_payment_mark_as_paid', {'id': payment.id}) }}" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('mark-as-paid' ~ payment.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-success" title="Marquer comme payé">
-                                        <i class="fas fa-check"></i> Valider
+                                    <button type="submit" class="action-btn success" title="Marquer comme payé">
+                                        <i class="fas fa-check"></i>
                                     </button>
                                 </form>
+                                <a href="#" class="action-btn primary" title="Voir détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="action-btn warning" title="Envoyer rappel">
+                                    <i class="fas fa-bell"></i>
+                                </a>
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">Aucun paiement en retard (Bravo !)</td>
+                            <td colspan="6" class="empty-state">
+                                <i class="fas fa-trophy fa-2x mb-2"></i>
+                                <p class="mb-0">Aucun paiement en retard (Bravo !)</p>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -322,49 +557,56 @@
         </div>
     </div>
     
-    <!-- Aperçu des appartements -->
-    <div class="row mt-4">
+    <!-- Aperçu des appartements et prochaines échéances -->
+    <div class="row g-4">
         <div class="col-md-6">
-            <div class="dashboard-card bg-white">
-                <h3>Statut des appartements</h3>
-                <div class="d-flex justify-content-around text-center mt-4">
-                    <div>
-                        <div class="stat-value text-success">{{ occupiedApartments }}</div>
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-building me-2"></i>Statut des appartements</h2>
+                </div>
+                <div class="stats-grid my-4">
+                    <div class="stat-item">
+                        <div class="stat-number occupied">{{ occupiedApartments }}</div>
                         <div>Loués</div>
                     </div>
-                    <div>
-                        <div class="stat-value text-danger">{{ vacantApartments }}</div>
+                    <div class="stat-item">
+                        <div class="stat-number vacant">{{ vacantApartments }}</div>
                         <div>Vacants</div>
                     </div>
-                    <div>
-                        <div class="stat-value text-warning">{{ maintenanceApartments }}</div>
+                    <div class="stat-item">
+                        <div class="stat-number maintenance">{{ maintenanceApartments }}</div>
                         <div>En maintenance</div>
                     </div>
                 </div>
-                <div class="mt-3 text-center">
+                <div class="text-center mt-4">
                     <a href="{{ path('app_apartment_index') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-home"></i> Gérer les appartements
+                        <i class="fas fa-home me-2"></i>Gérer les appartements
                     </a>
                 </div>
             </div>
         </div>
+        
         <div class="col-md-6">
-            <div class="dashboard-card bg-white">
-                <h3>Prochaines échéances</h3>
-                <ul class="list-group list-group-flush mt-3">
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-clock me-2"></i>Prochaines échéances</h2>
+                </div>
+                <ul class="deadline-list">
                     {% set found = false %}
                     {% for payment in upcomingPayments|slice(0, 3) %}
                         {% set found = true %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ payment.lease.apartment.name }} - {{ payment.lease.tenantsNames }}
-                            <div>
-                                <span class="badge bg-primary rounded-pill me-2">{{ payment.amount|number_format(2, ',', ' ') }} €</span>
-                                <span class="badge bg-secondary rounded-pill">{{ payment.dueDate|date('d/m/Y') }}</span>
+                        <li class="deadline-item">
+                            <div class="deadline-info">
+                                {{ payment.lease.apartment.name }} - {{ payment.lease.tenantsNames }}
+                            </div>
+                            <div class="deadline-meta">
+                                <span class="deadline-badge amount">{{ payment.amount|number_format(2, ',', ' ') }} €</span>
+                                <span class="deadline-badge date">{{ payment.dueDate|date('d/m/Y') }}</span>
                             </div>
                         </li>
                     {% endfor %}
                     {% if not found %}
-                        <li class="list-group-item text-center text-muted">Aucune échéance prochaine</li>
+                        <li class="deadline-item empty-state">Aucune échéance prochaine</li>
                     {% endif %}
                 </ul>
             </div>
@@ -452,7 +694,8 @@
                         backgroundColor: 'rgba(46, 204, 113, 0.2)',
                         borderColor: 'rgba(46, 204, 113, 1)',
                         borderWidth: 2,
-                        tension: 0.4
+                        tension: 0.4,
+                        fill: true
                     },
                     {
                         label: 'Dépenses',
@@ -460,7 +703,8 @@
                         backgroundColor: 'rgba(231, 76, 60, 0.2)',
                         borderColor: 'rgba(231, 76, 60, 1)',
                         borderWidth: 2,
-                        tension: 0.4
+                        tension: 0.4,
+                        fill: true
                     }
                 ]
             };
@@ -470,11 +714,27 @@
                 data: monthlyData,
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20,
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#333',
+                            bodyColor: '#666',
+                            borderColor: '#e0e0e0',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
@@ -490,13 +750,31 @@
                         }
                     },
                     scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value, index, values) {
                                     return value.toLocaleString('fr-FR') + ' €';
                                 }
+                            },
+                            grid: {
+                                borderDash: [5, 5]
                             }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    elements: {
+                        point: {
+                            radius: 3,
+                            hoverRadius: 6
                         }
                     }
                 }
